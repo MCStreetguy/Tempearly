@@ -10,7 +10,7 @@ namespace MCStreetguy;
  */
 class Tempearly {
 
-  private $PATH, $EXTENSION;
+  private $PATH = '', $EXTENSION = '';
 
   /**
    * Creates a new Tempearly instance.
