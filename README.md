@@ -1,6 +1,8 @@
 # Tempearly
 A tiny PHP templating engine.
 
+Visit the [full documentation](https://docs.mcstreetguy.de/Tempearly/) for a detailed explanation.
+
 ### Installation
 ```
 $ composer require mcstreetguy/tempearly
