@@ -2,6 +2,8 @@
 
 namespace MCStreetguy;
 
+include 'vendor/autoload.php';
+
 /**
  * The main class of Tempearly rendering engine.
  *
@@ -46,6 +48,8 @@ class Tempearly {
 
     // If-Else-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
+      Kint::dump($matches);
+
       $condition = $matches[2];
       $content = $matches[4];
       $alternate = $matches[6];
@@ -79,6 +83,8 @@ class Tempearly {
 
     // If-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
+      Kint::dump($matches);
+
       $condition = $matches[2];
       $content = $matches[4];
       $conditionType = gettype($condition);
@@ -111,6 +117,8 @@ class Tempearly {
 
     // Variable replacement
     $tpl = preg_replace_callback('/({{)([\w-]+)(}})/',function($matches) use ($systemContext, $context) {
+      Kint::dump($matches);
+
       $variableName = $matches[2];
 
       if(is_array($context) && array_key_exists($variableName,$context)) {
@@ -125,6 +133,8 @@ class Tempearly {
 
     // Template rendering
     $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($context) {
+      Kint::dump($matches);
+      
       $identifier = $matches[2];
 
       return $this->render($identifier,$context);
