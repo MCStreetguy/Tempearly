@@ -6,3 +6,4 @@
 - Add math support (?)
 - Add support for value processors (?)
 - Add helper methods to system context
+- Add translation (dimension) support
