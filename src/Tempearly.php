@@ -35,7 +35,7 @@ class Tempearly {
       throw new Exception('Invalid Arguments!');
     }
 
-    $SOURCE = $this->$PATH.$id.$this->$EXTENSION;
+    $SOURCE = $this->PATH.$id.$this->EXTENSION;
     if(!file_exists($SOURCE)) {
       throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!');
     }
