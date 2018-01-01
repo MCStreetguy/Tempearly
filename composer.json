@@ -9,9 +9,7 @@
       "email": "maximilianschmidt404@gmail.com"
     }
   ],
-  "require": {
-    "kint-php/kint": "^2.2"
-  },
+  "require": {},
   "autoload": {
     "psr-4": {
       "MCStreetguy\\": "src/"
