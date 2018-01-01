@@ -45,7 +45,7 @@ class Tempearly {
     $systemContext = $this->buildContext();
 
     // If-Else-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+)({{else}})([\w\W]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
       $condition = $matches[2];
       $content = $matches[4];
       $alternate = $matches[6];
@@ -78,7 +78,7 @@ class Tempearly {
     },$tpl);
 
     // If-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
       $condition = $matches[2];
       $content = $matches[4];
       $conditionType = gettype($condition);
