@@ -1,5 +1,7 @@
 <?php
 
+namespace MCStreetguy;
+
 /**
  * The main class of Tempearly rendering engine.
  *
@@ -17,8 +19,8 @@ class Tempearly {
    * @param string $extension [optional] The template file extension
    */
   public function __construct($path, $extension = '.tpl.html') {
-    $this->$PATH = $path;
-    $this->$EXTENSION = $extension;
+    $this->setPath($path);
+    $this->setExtension($extension);
   }
 
   /**
@@ -42,20 +44,80 @@ class Tempearly {
 
     $tpl = file_get_contents($SOURCE);
 
-    $systemContext = $_this->_buildContext();
+    $systemContext = $_this->buildContext();
 
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W\n]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
+    // If-Else-Conditions
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
+      $condition = $matches[2];
+      $content = $matches[4];
+      $alternate = $matches[6];
+      $conditionType = gettype($condition);
+
+      switch ($conditionType) {
+        case 'boolean':
+          if(is_array($context) && array_key_exists($condition,$context)) {
+            if($context[$condition] == true) {
+              return $content;
+            } else {
+              return $alternate;
+            }
+          } elseif(array_key_exists($condition,$systemContext)) {
+            if($systemContext[$condition] == true) {
+              return $content;
+            } else {
+              return $alternate;
+            }
+          } else {
+            // TODO: Add default replacement if no value could be found?
+            return $alternate;
+          }
+          break;
+
+        default:
+          return $matches[0];
+          break;
+      }
+    },$tpl);
+
+    // If-Conditions
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
       $condition = $matches[2];
       $content = $matches[4];
       $conditionType = gettype($condition);
+
+      switch ($conditionType) {
+        case 'boolean':
+          if(is_array($context) && array_key_exists($condition,$context)) {
+            if($context[$condition] == true) {
+              return $content;
+            } else {
+              return '';
+            }
+          } elseif(array_key_exists($condition,$systemContext)) {
+            if($systemContext[$condition] == true) {
+              return $content;
+            } else {
+              return '';
+            }
+          } else {
+            // TODO: Add default replacement if no value could be found?
+            return '';
+          }
+          break;
+
+        default:
+          return $matches[0];
+          break;
+      }
     },$tpl);
 
+    // Variable replacement
     $tpl = preg_replace_callback('/({{)([\w-]+)(}})/',function($matches) use ($systemContext, $context) {
       $variableName = $matches[2];
 
       if(is_array($context) && array_key_exists($variableName,$context)) {
         return $context[$variableName];
-      } else if(array_key_exists($variableName,$systemContext)) {
+      } elseif(array_key_exists($variableName,$systemContext)) {
         return $systemContext[$variableName];
       } else {
         // TODO: Add default replacement if no value could be found?
@@ -63,6 +125,7 @@ class Tempearly {
       }
     },$tpl);
 
+    // Template rendering
     $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($_this, $context) {
       $identifier = $matches[2];
 
@@ -77,12 +140,28 @@ class Tempearly {
    *
    * @return array The system context
    */
-  private function _buildContext() {
+  private function buildContext() {
     $C = array(
       'rule' => '<hr />'
     );
 
     return $C;
+  }
+
+  public function getPath() {
+    return $this->$PATH;
+  }
+
+  public function setPath($path) {
+    $this->$PATH = $path;
+  }
+
+  public function getExtension() {
+    return $this->$EXTENSION;
+  }
+
+  public function setExtension($extension) {
+    $this->$EXTENSION = $extension;
   }
 }
 
