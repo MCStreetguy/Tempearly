@@ -2,8 +2,6 @@
 
 namespace MCStreetguy;
 
-include 'vendor/autoload.php';
-
 /**
  * The main class of Tempearly rendering engine.
  *
@@ -48,77 +46,53 @@ class Tempearly {
 
     // If-Else-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
-      Kint::dump($matches);
-
       $condition = $matches[2];
       $content = $matches[4];
       $alternate = $matches[6];
-      $conditionType = gettype($condition);
 
-      switch ($conditionType) {
-        case 'boolean':
-          if(is_array($context) && array_key_exists($condition,$context)) {
-            if($context[$condition] == true) {
-              return $content;
-            } else {
-              return $alternate;
-            }
-          } elseif(array_key_exists($condition,$systemContext)) {
-            if($systemContext[$condition] == true) {
-              return $content;
-            } else {
-              return $alternate;
-            }
-          } else {
-            // TODO: Add default replacement if no value could be found?
-            return $alternate;
-          }
-          break;
-
-        default:
-          return $matches[0];
-          break;
+      if(is_array($context) && array_key_exists($condition,$context)) {
+        if($context[$condition] == true) {
+          return $content;
+        } else {
+          return $alternate;
+        }
+      } elseif(array_key_exists($condition,$systemContext)) {
+        if($systemContext[$condition] == true) {
+          return $content;
+        } else {
+          return $alternate;
+        }
+      } else {
+        // TODO: Add default replacement if no value could be found?
+        return $alternate;
       }
     },$tpl);
 
     // If-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
-      Kint::dump($matches);
-
       $condition = $matches[2];
       $content = $matches[4];
-      $conditionType = gettype($condition);
 
-      switch ($conditionType) {
-        case 'boolean':
-          if(is_array($context) && array_key_exists($condition,$context)) {
-            if($context[$condition] == true) {
-              return $content;
-            } else {
-              return '';
-            }
-          } elseif(array_key_exists($condition,$systemContext)) {
-            if($systemContext[$condition] == true) {
-              return $content;
-            } else {
-              return '';
-            }
-          } else {
-            // TODO: Add default replacement if no value could be found?
-            return '';
-          }
-          break;
-
-        default:
-          return $matches[0];
-          break;
+      if(is_array($context) && array_key_exists($condition,$context)) {
+        if($context[$condition] == true) {
+          return $content;
+        } else {
+          return '';
+        }
+      } elseif(array_key_exists($condition,$systemContext)) {
+        if($systemContext[$condition] == true) {
+          return $content;
+        } else {
+          return '';
+        }
+      } else {
+        // TODO: Add default replacement if no value could be found?
+        return '';
       }
     },$tpl);
 
     // Variable replacement
     $tpl = preg_replace_callback('/({{)([\w-]+)(}})/',function($matches) use ($systemContext, $context) {
-      Kint::dump($matches);
-
       $variableName = $matches[2];
 
       if(is_array($context) && array_key_exists($variableName,$context)) {
@@ -133,8 +107,6 @@ class Tempearly {
 
     // Template rendering
     $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($context) {
-      Kint::dump($matches);
-      
       $identifier = $matches[2];
 
       return $this->render($identifier,$context);
@@ -149,25 +121,43 @@ class Tempearly {
    * @return array The system context
    */
   private function buildContext() {
-    $C = array(
+    return array(
       'rule' => '<hr />'
     );
-
-    return $C;
   }
 
+  /**
+   * Returns the template folder path.
+   *
+   * @return string The template folder path
+   */
   public function getPath() {
     return $this->PATH;
   }
 
+  /**
+   * Sets the template folder path.
+   *
+   * @param string $path The new template folder path
+   */
   public function setPath($path) {
     $this->PATH = $path;
   }
 
+  /**
+   * Returns the template file extension.
+   *
+   * @return string The template folder path
+   */
   public function getExtension() {
     return $this->EXTENSION;
   }
 
+  /**
+   * Sets the template file extension.
+   *
+   * @param string $extension The new template folder path
+   */
   public function setExtension($extension) {
     $this->EXTENSION = $extension;
   }
