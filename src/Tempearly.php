@@ -35,16 +35,14 @@ class Tempearly {
       throw new Exception('Invalid Arguments!');
     }
 
-    $_this = $this;
-
-    $SOURCE = $_this->$PATH.$id.$_this->$EXTENSION;
+    $SOURCE = $this->$PATH.$id.$this->$EXTENSION;
     if(!file_exists($SOURCE)) {
       throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!');
     }
 
     $tpl = file_get_contents($SOURCE);
 
-    $systemContext = $_this->buildContext();
+    $systemContext = $this->buildContext();
 
     // If-Else-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+)({{\/if}})/',function($matches) use ($systemContext, $context) {
@@ -126,10 +124,10 @@ class Tempearly {
     },$tpl);
 
     // Template rendering
-    $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($_this, $context) {
+    $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($context) {
       $identifier = $matches[2];
 
-      return $_this->render($identifier,$context);
+      return $this->render($identifier,$context);
     },$tpl);
 
     return $tpl;
