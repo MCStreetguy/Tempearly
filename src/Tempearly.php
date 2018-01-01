@@ -10,7 +10,7 @@ namespace MCStreetguy;
  */
 class Tempearly {
 
-  private $PATH = '', $EXTENSION = '';
+  private $PATH, $EXTENSION;
 
   /**
    * Creates a new Tempearly instance.
@@ -149,19 +149,19 @@ class Tempearly {
   }
 
   public function getPath() {
-    return $this->$PATH;
+    return $this->PATH;
   }
 
   public function setPath($path) {
-    $this->$PATH = $path;
+    $this->PATH = $path;
   }
 
   public function getExtension() {
-    return $this->$EXTENSION;
+    return $this->EXTENSION;
   }
 
   public function setExtension($extension) {
-    $this->$EXTENSION = $extension;
+    $this->EXTENSION = $extension;
   }
 }
 
