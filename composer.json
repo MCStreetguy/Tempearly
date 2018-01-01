@@ -1,0 +1,13 @@
+{
+    "name": "mcstreetguy/tempearly",
+    "description": "A tiny PHP templating engine.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Maximilian Schmidt",
+            "email": "m.schmidt@obis-concept.de"
+        }
+    ],
+    "require": {}
+}
