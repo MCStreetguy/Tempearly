@@ -10,6 +10,10 @@ namespace MCStreetguy;
  */
 class Tempearly {
 
+  /**
+   * @var $PATH The template folder path
+   * @var $EXTENSION The template file extension
+   */
   private $PATH, $EXTENSION;
 
   /**
@@ -32,12 +36,12 @@ class Tempearly {
    */
   public function render($id,$context = null) {
     if(empty($id) || (!empty($context) && !is_array($context))) {
-      throw new Exception('Invalid Arguments!');
+      throw new Exception('Invalid Arguments!',1,'Tempearly.php',39);
     }
 
     $SOURCE = $this->PATH.$id.$this->EXTENSION;
     if(!file_exists($SOURCE)) {
-      throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!');
+      throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!',2,'Tempearly.php',44);
     }
 
     $tpl = file_get_contents($SOURCE);
@@ -95,14 +99,47 @@ class Tempearly {
     $tpl = preg_replace_callback('/({{)([\w-]+)(}})/',function($matches) use ($systemContext, $context) {
       $variableName = $matches[2];
 
-      if(is_array($context) && array_key_exists($variableName,$context)) {
-        return $context[$variableName];
-      } elseif(array_key_exists($variableName,$systemContext)) {
-        return $systemContext[$variableName];
+      // TODO: Add default replacement if no value could be found?
+      $default = '';
+      $result;
+
+      if(strpos($variableName,'.') != false) {
+        $variableName = explode('.',$variableName);
+
+        if(is_array($context) && array_key_exists($variableName[0],$context)) {
+          $result = $context;
+
+          foreach ($variableName as $key => $value) {
+            if(is_array($result) && array_key_exists($value,$result)) {
+              $result = $result[$value];
+            } else {
+              $result = $default;
+              break;
+            }
+          }
+        } elseif(array_key_exists($variableName[0],$systemContext)) {
+          $result = $systemContext;
+
+          foreach ($variableName as $key => $value) {
+            if(is_array($result) && array_key_exists($value,$result)) {
+              $result = $result[$value];
+            } else {
+              $result = $default;
+              break;
+            }
+          }
+        }
       } else {
-        // TODO: Add default replacement if no value could be found?
-        return '';
+        if(is_array($context) && array_key_exists($variableName,$context)) {
+          $result = $context[$variableName];
+        } elseif(array_key_exists($variableName,$systemContext)) {
+          $result = $systemContext[$variableName];
+        } else {
+          $result = $default;
+        }
       }
+
+      return $result;
     },$tpl);
 
     // Template rendering
