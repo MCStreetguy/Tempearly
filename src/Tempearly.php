@@ -1,6 +1,7 @@
 <?php
 
 namespace MCStreetguy;
+use Exception;
 
 /**
  * The main class of Tempearly rendering engine.
