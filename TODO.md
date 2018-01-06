@@ -7,4 +7,4 @@
 [] Add support for value processors (?)
 [] Add helper methods to system context
 [] Add translation (dimension) support
-[] Add support for minimization of templates (?)
+[x] Add support for minimization of templates (?)
