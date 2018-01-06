@@ -4,11 +4,16 @@ namespace MCStreetguy\Tempearly;
 use Exception;
 
 /**
+ * The context class. Contains variables (keys with values) to use within the template.
  *
+ * @author Maximilian Schmidt <maximilianschmidt404@gmail.com>
+ * @license MIT
  */
 class Context {
 
   /**
+   * Contains protected key names.
+   *
    * @var array $PROTECTED
    */
   private $PROTECTED = [
@@ -16,12 +21,16 @@ class Context {
   ];
 
   /**
+   * The context contents.
+   *
    * @var array $CONTENTS
    */
   private $CONTENTS;
 
   /**
-   * @param array $content The context contents
+   * Initiates a new context object.
+   *
+   * @param array $content [optional] The context contents
    */
   function __construct($content = null) {
     if(!empty($content) && is_array($content)) {
