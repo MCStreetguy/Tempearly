@@ -173,6 +173,16 @@ class Tempearly {
   }
 
   /**
+   * Minimizes a html string.
+   *
+   * @param string $html The html to minimize
+   * @return string The minimized html
+   */
+  public static function minimize($html) {
+    return preg_replace('/(?<=>|\G)([^<]*?)(\s)(?=<)/','',$html);
+  }
+
+  /**
    * Builds up the system context.
    *
    * @return array The system context
