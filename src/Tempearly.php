@@ -49,6 +49,9 @@ class Tempearly {
 
     $systemContext = $this->buildContext();
 
+    // Comments
+    $tpl = preg_replace('/{\*.*\*}/','',$tpl);
+
     // If-Else-Conditions
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
       $condition = $matches[2];
