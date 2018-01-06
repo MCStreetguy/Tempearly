@@ -32,10 +32,10 @@ class Tempearly {
    * Invokes the rendering process of the given template.
    *
    * @param string $id The template identifier
-   * @param array $context [optional] Additional context variables for template processing
+   * @param mixed $context [optional] Additional context variables for template processing
    * @return string The parsed template string
    */
-  public function render($id,$context = null) {
+  public function render(string $id,$context = null) {
     if(empty($id) || (!empty($context) && !is_array($context))) {
       throw new Exception('Invalid Arguments!',1);
     }
@@ -46,6 +46,17 @@ class Tempearly {
     }
 
     $tpl = file_get_contents($SOURCE);
+
+    if(!empty($context)) {
+      if(is_object($context)) {
+        d(get_class($context));
+        die();
+      } elseif(is_array($context)) {
+        $context = new Tempearly\Context($context);
+        d($context);
+        die();
+      }
+    }
 
     $systemContext = $this->buildContext();
 
