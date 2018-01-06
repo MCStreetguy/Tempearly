@@ -10,3 +10,5 @@
 - [x] Add support for minimization of templates (?)
 - [x] Add support for ternary operators
 - [x] Add support for plain values (such as strings)
+- [ ] Add interface for callable classes
+- [ ] Add support for value randomization
