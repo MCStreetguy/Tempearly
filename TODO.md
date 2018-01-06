@@ -8,3 +8,5 @@
 - [] Add helper methods to system context
 - [] Add translation (dimension) support
 - [x] Add support for minimization of templates (?)
+- [] Add support for ternary operators
+- [] Add support for plain values (such as strings)

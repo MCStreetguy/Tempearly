@@ -99,71 +99,26 @@ class Tempearly {
       }
     },$tpl);
 
-    // Variable replacement
-    $tpl = preg_replace_callback('/({{)([\w-.]+)(}})/',function($matches) use ($systemContext, $context) {
-      $variableName = $matches[2];
+    // Ternary operators
+    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.]+)( ?: ?)([\w-.]+)(}})/',function ($matches) use ($context) {
+      $condition = $matches[2];
+      $ifVariableName = $matches[4];
+      $elseVariableName = $matches[6];
 
-      // TODO: Add default replacement if no value could be found?
-      $default = '';
-      $result;
-
-      if(strpos($variableName,'.') != false) {
-        $variableName = explode('.',$variableName);
-
-        if(is_array($context) && array_key_exists($variableName[0],$context)) {
-          $result = $context;
-
-          foreach ($variableName as $key => $value) {
-            if(is_array($result) && array_key_exists($value,$result)) {
-              $result = $result[$value];
-            } else {
-              $result = $default;
-              break;
-            }
-          }
-
-          if(is_callable($result)) {
-            $result = $result();
-          }
-        } elseif(array_key_exists($variableName[0],$systemContext)) {
-          $result = $systemContext;
-
-          foreach ($variableName as $key => $value) {
-            if(is_array($result) && array_key_exists($value,$result)) {
-              $result = $result[$value];
-            } else {
-              $result = $default;
-              break;
-            }
-          }
-
-          if(is_callable($result)) {
-            $result = $result();
-          }
-        }
+      if($this->getValue($condition,$context) == true) {
+        return $this->getValue($ifVariableName,$context);
       } else {
-        if(is_array($context) && array_key_exists($variableName,$context)) {
-          if(is_callable($context[$variableName])) {
-            $result = $context[$variableName]();
-          } else {
-            $result = $context[$variableName];
-          }
-        } elseif(array_key_exists($variableName,$systemContext)) {
-          if(is_callable($context[$variableName])) {
-            $result = $systemContext[$variableName]();
-          } else {
-            $result = $systemContext[$variableName];
-          }
-        } else {
-          $result = $default;
-        }
+        return $this->getValue($elseVariableName,$context);
       }
+    },$tpl);
 
-      return $result;
+    // Variable replacement
+    $tpl = preg_replace_callback('/({{ ?)([\w-.]+)( ?}})/',function($matches) use ($context) {
+      return $this->getValue($matches[2],$context);
     },$tpl);
 
     // Template rendering
-    $tpl = preg_replace_callback('/({{tpl\()([\w-]+)(\)}})/',function($matches) use ($context) {
+    $tpl = preg_replace_callback('/({{tpl ?)([\w-]+)( ?}})/',function($matches) use ($context) {
       $identifier = $matches[2];
 
       return $this->render($identifier,$context);
@@ -172,16 +127,79 @@ class Tempearly {
     return $tpl;
   }
 
+  // Helper methods
+
   /**
-   * Minifies a html string.
+   * Searches a variable in all contexts.
    *
-   * @param string $html The html to minify
-   * @return string The minified html
+   * @param string $var The variable name to search for
+   * @param array $context The user context to search in
+   * @param array $systemContext [optional] The system context to search in
+   * @return string The corresponding variable value
    */
-  public static function minify($html) {
-    $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
-    $html = preg_replace('/(\s)+\s/',' ',$html);
-    return $html;
+  private function getValue($var,$context,$systemContext) {
+    if(empty($systemContext)) {
+      $systemContext = $this->buildContext();
+    }
+
+    $result;
+
+    // TODO: Add default replacement if no value could be found
+    $default = '';
+
+    if(strpos($var,'.') != false) {
+      $var = explode('.',$var);
+
+      if(is_array($context) && array_key_exists($var[0],$context)) {
+        $result = $context;
+
+        foreach ($var as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
+          } else {
+            $result = $default;
+            break;
+          }
+        }
+
+        if(is_callable($result)) {
+          $result = $result();
+        }
+      } elseif(array_key_exists($var[0],$systemContext)) {
+        $result = $systemContext;
+
+        foreach ($var as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
+          } else {
+            $result = $default;
+            break;
+          }
+        }
+
+        if(is_callable($result)) {
+          $result = $result();
+        }
+      }
+    } else {
+      if(is_array($context) && array_key_exists($var,$context)) {
+        if(is_callable($context[$var])) {
+          $result = $context[$var]();
+        } else {
+          $result = $context[$var];
+        }
+      } elseif(array_key_exists($var,$systemContext)) {
+        if(is_callable($context[$var])) {
+          $result = $systemContext[$var]();
+        } else {
+          $result = $systemContext[$var];
+        }
+      } else {
+        $result = $default;
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -194,6 +212,8 @@ class Tempearly {
       'rule' => '<hr />'
     );
   }
+
+  // Getter & Setter
 
   /**
    * Returns the template folder path.
@@ -229,6 +249,19 @@ class Tempearly {
    */
   public function setExtension($extension) {
     $this->EXTENSION = $extension;
+  }
+
+  // Static methods
+
+  /**
+   * Minifies a html string.
+   *
+   * @param string $html The html to minify
+   * @return string The minified html
+   */
+  public static function minify($html) {
+    $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
+    return preg_replace('/(\s)+\s/',' ',$html);
   }
 }
 
