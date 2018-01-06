@@ -100,7 +100,7 @@ class Tempearly {
     },$tpl);
 
     // Ternary operators
-    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.]+)( ?: ?)([\w-.]+)(}})/',function ($matches) use ($context) {
+    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',function ($matches) use ($context) {
       $condition = $matches[2];
       $ifVariableName = $matches[4];
       $elseVariableName = $matches[6];
@@ -143,11 +143,18 @@ class Tempearly {
     }
 
     $result;
+    $matches;
 
     // TODO: Add default replacement if no value could be found
     $default = '';
 
-    if(strpos($var,'.') != false) {
+    if(strtolower($var) == 'true') {
+      $result = true;
+    } elseif(strtolower($var) == 'false') {
+      $result = false;
+    } elseif(preg_match_all('/([\"\'])([^\"\']*)([\"\'])/',$var,$matches) > 0) {
+      $result = $matches[2][0];
+    } elseif(strpos($var,'.') != false) {
       $var = explode('.',$var);
 
       if(is_array($context) && array_key_exists($var[0],$context)) {
