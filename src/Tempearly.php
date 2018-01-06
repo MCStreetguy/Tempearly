@@ -37,12 +37,12 @@ class Tempearly {
    */
   public function render($id,$context = null) {
     if(empty($id) || (!empty($context) && !is_array($context))) {
-      throw new Exception('Invalid Arguments!',1,'Tempearly.php',39);
+      throw new Exception('Invalid Arguments!',1);
     }
 
     $SOURCE = $this->PATH.$id.$this->EXTENSION;
     if(!file_exists($SOURCE)) {
-      throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!',2,'Tempearly.php',44);
+      throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!',2);
     }
 
     $tpl = file_get_contents($SOURCE);
