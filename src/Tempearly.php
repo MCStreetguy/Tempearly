@@ -178,8 +178,9 @@ class Tempearly {
    * @param string $html The html to minimize
    * @return string The minimized html
    */
-  public static function minimize($html) {
-    return preg_replace('/(?<=>|\G)([^<]*?)(\s)(?=<)/','',$html);
+  public static function minify($html) {
+    $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
+    return preg_replace('/(\s)+\s/',' ',$html);
   }
 
   /**
