@@ -100,7 +100,7 @@ class Tempearly {
     },$tpl);
 
     // Variable replacement
-    $tpl = preg_replace_callback('/({{)([\w-]+)(}})/',function($matches) use ($systemContext, $context) {
+    $tpl = preg_replace_callback('/({{)([\w-.]+)(}})/',function($matches) use ($systemContext, $context) {
       $variableName = $matches[2];
 
       // TODO: Add default replacement if no value could be found?
@@ -176,11 +176,12 @@ class Tempearly {
    * Minifies a html string.
    *
    * @param string $html The html to minify
-   * @return string The minified html 
+   * @return string The minified html
    */
   public static function minify($html) {
     $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
-    return preg_replace('/(\s)+\s/',' ',$html);
+    $html = preg_replace('/(\s)+\s/',' ',$html);
+    return $html;
   }
 
   /**
