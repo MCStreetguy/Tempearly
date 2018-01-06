@@ -32,11 +32,11 @@ class Tempearly {
    * Invokes the rendering process of the given template.
    *
    * @param string $id The template identifier
-   * @param mixed $context [optional] Additional context variables for template processing
+   * @param array $context [optional] Additional context variables for template processing
    * @return string The parsed template string
    */
-  public function render(string $id,$context = null) {
-    if(empty($id) || (!empty($context) && !is_array($context))) {
+  public function render($id,$context = null) {
+    if(empty($id)) {
       throw new Exception('Invalid Arguments!',1);
     }
 
@@ -47,15 +47,17 @@ class Tempearly {
 
     $tpl = file_get_contents($SOURCE);
 
+    $hasContext;
+
     if(!empty($context)) {
-      if(is_object($context)) {
-        d(get_class($context));
-        die();
+      if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
+        throw new Exception('Invalid Arguments!',1);
       } elseif(is_array($context)) {
         $context = new Tempearly\Context($context);
-        d($context);
-        die();
       }
+      $hasContext = true;
+    } else {
+      $hasContext = false;
     }
 
     $systemContext = $this->buildContext();
@@ -64,19 +66,19 @@ class Tempearly {
     $tpl = preg_replace('/{\*.*\*}/','',$tpl);
 
     // If-Else-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context, $hasContext) {
       $condition = $matches[2];
       $content = $matches[4];
       $alternate = $matches[6];
 
-      if(is_array($context) && array_key_exists($condition,$context)) {
-        if($context[$condition] == true) {
+      if($hasContext && $context->has($condition)) {
+        if($context->get($condition) == true) {
           return $content;
         } else {
           return $alternate;
         }
-      } elseif(array_key_exists($condition,$systemContext)) {
-        if($systemContext[$condition] == true) {
+      } elseif($systemContext->has($condition)) {
+        if($systemContext->get($condition) == true) {
           return $content;
         } else {
           return $alternate;
@@ -88,18 +90,18 @@ class Tempearly {
     },$tpl);
 
     // If-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context) {
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context, $hasContext) {
       $condition = $matches[2];
       $content = $matches[4];
 
-      if(is_array($context) && array_key_exists($condition,$context)) {
-        if($context[$condition] == true) {
+      if($hasContext && $context->has($condition)) {
+        if($context->get($condition) == true) {
           return $content;
         } else {
           return '';
         }
-      } elseif(array_key_exists($condition,$systemContext)) {
-        if($systemContext[$condition] == true) {
+      } elseif($systemContext->has($condition)) {
+        if($systemContext->get($condition) == true) {
           return $content;
         } else {
           return '';
@@ -144,13 +146,24 @@ class Tempearly {
    * Searches a variable in all contexts.
    *
    * @param string $var The variable name to search for
-   * @param array $context The user context to search in
+   * @param array $context [optional] The user context to search in
    * @param array $systemContext [optional] The system context to search in
    * @return string The corresponding variable value
    */
-  private function getValue($var,$context,$systemContext) {
+  private function getValue($var,$context = null,$systemContext = null) {
     if(empty($systemContext)) {
       $systemContext = $this->buildContext();
+    }
+
+    if(!empty($context)) {
+      if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
+        throw new Exception('Invalid Arguments!',1);
+      } elseif(is_array($context)) {
+        $context = new Tempearly\Context($context);
+      }
+      $hasContext = true;
+    } else {
+      $hasContext = false;
     }
 
     $result;
@@ -168,8 +181,8 @@ class Tempearly {
     } elseif(strpos($var,'.') != false) {
       $var = explode('.',$var);
 
-      if(is_array($context) && array_key_exists($var[0],$context)) {
-        $result = $context;
+      if($hasContext && $context->has($var[0])) {
+        $result = $context->get('_all');
 
         foreach ($var as $key => $value) {
           if(is_array($result) && array_key_exists($value,$result)) {
@@ -183,8 +196,8 @@ class Tempearly {
         if(is_callable($result)) {
           $result = $result();
         }
-      } elseif(array_key_exists($var[0],$systemContext)) {
-        $result = $systemContext;
+      } elseif($systemContext->has($var[0])) {
+        $result = $systemContext->get('_all');
 
         foreach ($var as $key => $value) {
           if(is_array($result) && array_key_exists($value,$result)) {
@@ -200,17 +213,21 @@ class Tempearly {
         }
       }
     } else {
-      if(is_array($context) && array_key_exists($var,$context)) {
-        if(is_callable($context[$var])) {
-          $result = $context[$var]();
+      if($hasContext && $context->has($var)) {
+        $val = $context->get($var);
+
+        if(is_callable($val)) {
+          $result = $val();
         } else {
-          $result = $context[$var];
+          $result = $val;
         }
-      } elseif(array_key_exists($var,$systemContext)) {
-        if(is_callable($context[$var])) {
-          $result = $systemContext[$var]();
+      } elseif($systemContext->has($var)) {
+        $val = $systemContext->get($var);
+
+        if(is_callable($val)) {
+          $result = $val();
         } else {
-          $result = $systemContext[$var];
+          $result = $val;
         }
       } else {
         $result = $default;
@@ -223,12 +240,12 @@ class Tempearly {
   /**
    * Builds up the system context.
    *
-   * @return array The system context
+   * @return MCStreetguy\Tempearly\Context
    */
   private function buildContext() {
-    return array(
+    return new Tempearly\Context(array(
       'rule' => '<hr />'
-    );
+    ));
   }
 
   // Getter & Setter

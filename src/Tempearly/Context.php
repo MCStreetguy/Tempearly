@@ -55,7 +55,7 @@ class Context {
    * Get a value from the context.
    *
    * @param string $key The key to return or '_all'
-   * @return mixed The corresponding value or false if no value could be found
+   * @return mixed
    */
   public function get($key) {
     if($key == '_all') {
@@ -71,7 +71,7 @@ class Context {
    * Checks if a key exists in the context.
    *
    * @param string $key The key to search for
-   * @return bool true if the key exists, false otherwise
+   * @return bool
    */
   public function has($key) {
     return ($this->get($key) != false);
