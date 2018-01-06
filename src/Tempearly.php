@@ -118,6 +118,10 @@ class Tempearly {
               break;
             }
           }
+
+          if(is_callable($result)) {
+            $result = $result();
+          }
         } elseif(array_key_exists($variableName[0],$systemContext)) {
           $result = $systemContext;
 
@@ -129,12 +133,24 @@ class Tempearly {
               break;
             }
           }
+
+          if(is_callable($result)) {
+            $result = $result();
+          }
         }
       } else {
         if(is_array($context) && array_key_exists($variableName,$context)) {
-          $result = $context[$variableName];
+          if(is_callable($context[$variableName])) {
+            $result = $context[$variableName]();
+          } else {
+            $result = $context[$variableName];
+          }
         } elseif(array_key_exists($variableName,$systemContext)) {
-          $result = $systemContext[$variableName];
+          if(is_callable($context[$variableName])) {
+            $result = $systemContext[$variableName]();
+          } else {
+            $result = $systemContext[$variableName];
+          }
         } else {
           $result = $default;
         }
