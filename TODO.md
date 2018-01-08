@@ -13,3 +13,4 @@
 - [ ] Add interface for callable classes
 - [x] Add support for value randomization
 - [ ] Change comment syntax
+- [ ] Add support for logical operators such as OR AND ...

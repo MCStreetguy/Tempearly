@@ -66,7 +66,7 @@ class Tempearly {
     $tpl = preg_replace('/{\*.*\*}/','',$tpl);
 
     // If-Else-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context, $hasContext) {
+    $func = function($matches) use ($systemContext, $context, $hasContext) {
       $condition = $matches[2];
       $content = $matches[4];
       $alternate = $matches[6];
@@ -86,10 +86,11 @@ class Tempearly {
       } else {
         return $alternate;
       }
-    },$tpl);
+    };
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',$func,$tpl);
 
     // If-Conditions
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',function($matches) use ($systemContext, $context, $hasContext) {
+    $func = function($matches) use ($systemContext, $context, $hasContext) {
       $condition = $matches[2];
       $content = $matches[4];
 
@@ -109,10 +110,11 @@ class Tempearly {
         // TODO: Add default replacement if no value could be found?
         return '';
       }
-    },$tpl);
+    };
+    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',$func,$tpl);
 
     // Ternary operators
-    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',function ($matches) use ($context) {
+    $func = function ($matches) use ($context) {
       $condition = $matches[2];
       $ifVariableName = $matches[4];
       $elseVariableName = $matches[6];
@@ -122,29 +124,48 @@ class Tempearly {
       } else {
         return $this->getValue($elseVariableName,$context);
       }
-    },$tpl);
-    
+    };
+    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',$func,$tpl);
+
     // Variable replacement
-    $tpl = preg_replace_callback('/({{ ?)(.+)( ?}})/',function($matches) use ($context) {
+    $func = function($matches) use ($context) {
       $expression = $matches[2];
-      
+
+      $value;
+
       if(strpos($expression,',')) {
         // Value randomization
         $expression = preg_split('/ ?, ?/',$expression);
         $expression = $expression[rand(0,count($expression))];
-      } elseif(preg_match_all('/({{ ?)([\w-.]+)(( ?\| ?)([\w-.]+))+( ?}})/',$expression) > 0) {
+
+        $value = $this->getValue($expression,$context);
+      } elseif(preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression) > 0) {
         // Processors set
+        $func = function ($matches) use ($context) {
+          $value = $this->getValue($parts[1],$context);
+          $processor = $matches[3];
+
+
+        };
+
+        do {
+          $expression = preg_replace_callback('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$func,$expression);
+        } while (preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression));
+      } else {
+        $value = $this->getValue($expression,$context);
       }
-      
-      return $this->getValue($expression,$context);
-    },$tpl);
+
+      return $value;
+    };
+    $tpl = preg_replace_callback('/({{ ?)(.+)( ?}})/',$func,$tpl);
 
     // Template rendering
-    $tpl = preg_replace_callback('/({{tpl ?)([\w-]+)( ?}})/',function($matches) use ($context) {
+    $func = function($matches) use ($context) {
       $identifier = $matches[2];
 
       return $this->render($identifier,$context);
-    },$tpl);
+    };
+    $tpl = preg_replace_callback('/({{tpl ?)([\w-]+)( ?}})/',$func,$tpl);
 
     return $tpl;
   }
@@ -249,7 +270,7 @@ class Tempearly {
   /**
    * Builds up the system context.
    *
-   * @return MCStreetguy\Tempearly\Context
+   * @return Tempearly\Context
    */
   private function buildContext() {
     return new Tempearly\Context(array(
