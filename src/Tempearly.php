@@ -132,6 +132,8 @@ class Tempearly {
         // Value randomization
         $expression = preg_split('/ ?, ?/',$expression);
         $expression = $expression[rand(0,count($expression))];
+      } elseif(preg_match_all('/({{ ?)([\w-.]+)(( ?\| ?)([\w-.]+))+( ?}})/',$expression) > 0) {
+        // Processors set
       }
       
       return $this->getValue($expression,$context);
