@@ -325,8 +325,14 @@ class Tempearly {
    * @return string The minified html
    */
   public static function minify($html) {
+    // Unecessary whitespaces outside of tags
     $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
-    return preg_replace('/(\s)+\s/',' ',$html);
+    // Unecessary whitespaces within tags
+    $html = preg_replace('/(\s)+\s/',' ',$html);
+    // HTML comments
+    $html = preg_replace('/<!--.*-->/','',$html);
+
+    return $html;
   }
 }
 
