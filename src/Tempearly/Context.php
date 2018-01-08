@@ -12,19 +12,15 @@ use Exception;
 class Context {
 
   /**
-   * Contains protected key names.
-   *
-   * @var array $PROTECTED
+   * @var array $PROTECTED Contains protected key names
    */
   private $PROTECTED = [
     '_all'
   ];
 
   /**
-   * The context contents.
-   *
-   * @var array $CONTENTS
-   * @var array $PROCESSORS
+   * @var array $CONTENTS The context contents
+   * @var array $PROCESSORS The context processors
    */
   private $CONTENTS, $PROCESSORS;
 

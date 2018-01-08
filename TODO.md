@@ -14,3 +14,6 @@
 - [x] Add support for value randomization
 - [ ] Change comment syntax
 - [ ] Add support for logical operators such as OR AND ...
+- [ ] Refactor code, subsplit classes
+- [ ] Improve tolerance for whitespaces in expressions
+- [ ] Renew expression syntax (!)
