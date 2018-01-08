@@ -84,7 +84,6 @@ class Tempearly {
           return $alternate;
         }
       } else {
-        // TODO: Add default replacement if no value could be found?
         return $alternate;
       }
     },$tpl);
@@ -154,7 +153,7 @@ class Tempearly {
    * Searches a variable in all contexts.
    *
    * @param string $var The variable name to search for
-   * @param array $context [optional] The user context to search in
+   * @param array $context [optional] The user context to search in
    * @param array $systemContext [optional] The system context to search in
    * @return string The corresponding variable value
    */
