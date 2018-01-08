@@ -124,10 +124,18 @@ class Tempearly {
         return $this->getValue($elseVariableName,$context);
       }
     },$tpl);
-
+    
     // Variable replacement
-    $tpl = preg_replace_callback('/({{ ?)([\w-.]+)( ?}})/',function($matches) use ($context) {
-      return $this->getValue($matches[2],$context);
+    $tpl = preg_replace_callback('/({{ ?)(.+)( ?}})/',function($matches) use ($context) {
+      $expression = $matches[2];
+      
+      if(strpos($expression,',')) {
+        // Value randomization
+        $expression = preg_split('/ ?, ?/',$expression);
+        $expression = $expression[rand(0,count($expression))];
+      }
+      
+      return $this->getValue($expression,$context);
     },$tpl);
 
     // Template rendering
