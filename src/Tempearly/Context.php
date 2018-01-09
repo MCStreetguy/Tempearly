@@ -1,7 +1,6 @@
 <?php
 
 namespace MCStreetguy\Tempearly;
-use Exception;
 
 /**
  * The context class. Contains variables (keys with values) to use within the template.
@@ -49,35 +48,57 @@ class Context {
    *
    * @param string $key The context-key of the new entry
    * @param mixed $value The value of the new entry
-   * @throws Exception If invalid parameters are given
-   * @return void
+   * @return bool
    */
   public function push(string $key,$value) {
-    if(empty($key) || !is_string($key)) {
-      throw new Exception('Invalid key parameter given!',1);
-    } elseif(empty($value)) {
-      throw new Exception('Invalid value parameter given!',2);
-    } elseif(is_array($key,$this->PROTECTED)) {
-      throw new Exception('Key "'.$key.'" is protected and can not be overridden!',3);
+    if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->PROTECTED)) {
+      return false;
     } else {
       $this->CONTENTS[$key] = $value;
+      return true;
     }
   }
 
   /**
    * Get a value from the context.
    *
-   * @param string $key The key to return or '_all'
+   * @param string $key The keypath to return or '_all'
    * @return mixed
    */
   public function get(string $key) {
     if($key == '_all') {
       return $this->CONTENTS;
-    } elseif(array_key_exists($key,$this->CONTENTS)) {
-      return $this->CONTENTS[$key];
-    } else {
-      return false;
     }
+
+    $result;
+    $default = '';
+
+    if(strpos($key,'.') != false) {
+      $key = explode('.',$key);
+
+      if($this->has($key[0])) {
+        $result = $this->CONTENTS;
+
+        foreach ($key as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
+          } else {
+            $result = $default;
+            break;
+          }
+        }
+      } else {
+        $result = $default;
+      }
+    } else {
+      if($this->has($key)) {
+        $result = $this->CONTENTS->$key;
+      } else {
+        $result = $default;
+      }
+    }
+
+    return $result;
   }
 
   /**
@@ -87,7 +108,7 @@ class Context {
    * @return bool
    */
   public function has(string $key) {
-    return ($this->get($key) != false);
+    return array_key_exists($key,$this->CONTENTS);
   }
 
   /**
