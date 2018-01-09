@@ -119,10 +119,10 @@ class Tempearly {
       $ifVariableName = $matches[4];
       $elseVariableName = $matches[6];
 
-      if($this->getValue($condition,$context) == true) {
-        return $this->getValue($ifVariableName,$context);
+      if($context->get($condition) == true) {
+        return $context->get($ifVariableName);
       } else {
-        return $this->getValue($elseVariableName,$context);
+        return $context->get($elseVariableName);
       }
     };
     $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',$func,$tpl);
@@ -138,21 +138,21 @@ class Tempearly {
         $expression = preg_split('/ ?, ?/',$expression);
         $expression = $expression[rand(0,count($expression))];
 
-        $value = $this->getValue($expression,$context);
+        $value = $context->get($expression);
       } elseif(preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression) > 0) {
         // Processors set
         $func = function ($matches) use ($context) {
-          $value = $this->getValue($parts[1],$context);
+          $value = $context->get($parts[1]);
           $processor = $matches[3];
 
-
+          // TODO !
         };
 
         do {
           $expression = preg_replace_callback('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$func,$expression);
         } while (preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression));
       } else {
-        $value = $this->getValue($expression,$context);
+        $value = $context->get($expression);
       }
 
       return $value;
@@ -171,101 +171,6 @@ class Tempearly {
   }
 
   // Helper methods
-
-  /**
-   * Searches a variable in all contexts.
-   *
-   * @param string $var The variable name to search for
-   * @param array $context [optional] The user context to search in
-   * @param array $systemContext [optional] The system context to search in
-   * @return string The corresponding variable value
-   */
-  private function getValue($var,$context = null,$systemContext = null) {
-    if(empty($systemContext)) {
-      $systemContext = $this->buildContext();
-    }
-
-    if(!empty($context)) {
-      if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
-        throw new Exception('Invalid Arguments!',1);
-      } elseif(is_array($context)) {
-        $context = new Tempearly\Context($context);
-      }
-      $hasContext = true;
-    } else {
-      $hasContext = false;
-    }
-
-    $result;
-    $matches;
-
-    // TODO: Add default replacement if no value could be found
-    $default = '';
-
-    if(strtolower($var) == 'true') {
-      $result = true;
-    } elseif(strtolower($var) == 'false') {
-      $result = false;
-    } elseif(preg_match_all('/([\"\'])([^\"\']*)([\"\'])/',$var,$matches) > 0) {
-      $result = $matches[2][0];
-    } elseif(strpos($var,'.') != false) {
-      $var = explode('.',$var);
-
-      if($hasContext && $context->has($var[0])) {
-        $result = $context->get('_all');
-
-        foreach ($var as $key => $value) {
-          if(is_array($result) && array_key_exists($value,$result)) {
-            $result = $result[$value];
-          } else {
-            $result = $default;
-            break;
-          }
-        }
-
-        if(is_callable($result)) {
-          $result = $result();
-        }
-      } elseif($systemContext->has($var[0])) {
-        $result = $systemContext->get('_all');
-
-        foreach ($var as $key => $value) {
-          if(is_array($result) && array_key_exists($value,$result)) {
-            $result = $result[$value];
-          } else {
-            $result = $default;
-            break;
-          }
-        }
-
-        if(is_callable($result)) {
-          $result = $result();
-        }
-      }
-    } else {
-      if($hasContext && $context->has($var)) {
-        $val = $context->get($var);
-
-        if(is_callable($val)) {
-          $result = $val();
-        } else {
-          $result = $val;
-        }
-      } elseif($systemContext->has($var)) {
-        $val = $systemContext->get($var);
-
-        if(is_callable($val)) {
-          $result = $val();
-        } else {
-          $result = $val;
-        }
-      } else {
-        $result = $default;
-      }
-    }
-
-    return $result;
-  }
 
   /**
    * Builds up the system context.
