@@ -7,7 +7,7 @@ namespace MCStreetguy\Tempearly\Interfaces;
  */
 interface Invokable {
   /**
-   * The main function of the Invokable, that can be called by the engine.
+   * The main function of the Invokable.
    */
   public static function invoke();
 }

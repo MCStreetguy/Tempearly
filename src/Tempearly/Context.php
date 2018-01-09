@@ -1,6 +1,7 @@
 <?php
 
 namespace MCStreetguy\Tempearly;
+use MCStreetguy\Tempearly\Interfaces\Processor;
 
 /**
  * The context class. Contains variables (keys with values) to use within the template.
@@ -126,7 +127,7 @@ class Context {
    * Gets a processor from the context.
    *
    * @param string $name Name of the processor to get
-   * @return callable|bool
+   * @return Processor|bool
    */
   public function getProcessor(string $name) {
     if(!empty($name) && array_key_exists($name,$this->PROCESSORS)) {
@@ -140,11 +141,11 @@ class Context {
    * Registers a new processor on the context.
    *
    * @param string $name The name of the processor (must be unique)
-   * @param callable $processor The processor function
+   * @param Processor $processor The processor function
    * @param bool $force [optional] Allow overriding of existing processors (not recommended)
    * @return bool
    */
-  public function register(string $name, callable $processor, bool $force = false) {
+  public function register(string $name, Processor $processor, bool $force = false) {
     if(!array_key_exists($name,$this->PROCESSORS) || $force) {
       $this->PROCESSORS[$name] = $processor;
       return true;
