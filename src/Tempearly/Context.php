@@ -76,6 +76,10 @@ class Context {
       $result = true;
     } elseif(strtolower($key) == 'false') {
       $result = false;
+    } elseif(floatval($key) && floatval($key) != intval($key)) {
+      $result = floatval($key);
+    } elseif(intval($key) && floatval($key) == intval($key)) {
+      $result = intval($key);
     } elseif(preg_match_all('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
       $result = $result[2];
     } elseif(strpos($key,'.') != false) {

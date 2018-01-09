@@ -2,6 +2,8 @@
 
 namespace MCStreetguy;
 use Exception;
+use MCStreetguy\Tempearly\Context;
+use MCStreetguy\Tempearly\Service\RegExHelper;
 
 /**
  * The main class of Tempearly rendering engine.
@@ -53,7 +55,7 @@ class Tempearly {
       if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
         throw new Exception('Invalid Arguments!',1);
       } elseif(is_array($context)) {
-        $context = new Tempearly\Context($context);
+        $context = new Context($context);
       }
       $hasContext = true;
     } else {
@@ -63,7 +65,7 @@ class Tempearly {
     $systemContext = $this->buildContext();
 
     // Comments
-    $tpl = preg_replace('/{\*.*\*}/','',$tpl);
+    $tpl = preg_replace(RegExHelper::$COMMENTS,'',$tpl);
 
     // If-Else-Conditions
     $func = function($matches) use ($systemContext, $context, $hasContext) {
@@ -87,7 +89,14 @@ class Tempearly {
         return $alternate;
       }
     };
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)({{else}})([\w\W]+?)(?={{\/if}})({{\/if}})/',$func,$tpl);
+    $regexp = '/'.
+              RegExHelper::$CONDITIONS->start.
+              RegExHelper::$CONDITIONS->body.
+              RegExHelper::$CONDITIONS->else.
+              RegExHelper::$CONDITIONS->body.
+              RegExHelper::$CONDITIONS->end.
+              '/';
+    $tpl = preg_replace_callback($regex,$func,$tpl);
 
     // If-Conditions
     $func = function($matches) use ($systemContext, $context, $hasContext) {
@@ -111,7 +120,12 @@ class Tempearly {
         return '';
       }
     };
-    $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',$func,$tpl);
+    $regexp = '/'.
+              RegExHelper::$CONDITIONS->start.
+              RegExHelper::$CONDITIONS->body.
+              RegExHelper::$CONDITIONS->end.
+              '/';
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Ternary operators
     $func = function ($matches) use ($context, $systemContext) {
@@ -136,39 +150,100 @@ class Tempearly {
         return '';
       }
     };
-    $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',$func,$tpl);
+    $regexp = '/'.
+              RegExHelper::$GENERAL->start.
+              RegExHelper::$GENERAL->value.
+              RegExHelper::$CONDITIONS->ternary.
+              RegExHelper::$GENERAL->value.
+              RegExHelper::$DELIMITER->ternary.
+              RegExHelper::$GENERAL->value.
+              RegExHelper::$GENERAL->end.
+              '/';
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Variable replacement
-    $func = function($matches) use ($context) {
+    $func = function($matches) use ($context,$systemContext) {
       $expression = $matches[2];
 
       $value;
 
+      $processorRegex = '/^'.
+                        RegExHelper::$GENERAL->value.
+                        RegExHelper::$DELIMITER->processor.
+                        RegExHelper::$GENERAL->value.
+                        '/';
+
       if(strpos($expression,',')) {
         // Value randomization
-        $expression = preg_split('/ ?, ?/',$expression);
+        $expression = preg_split(RegExHelper::$DELIMITER->randomizer,$expression);
         $expression = $expression[rand(0,count($expression))];
 
-        $value = $context->get($expression);
-      } elseif(preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression) > 0) {
+        if($context->has($expression)) {
+          $value = $context->get($expression);
+        } elseif($systemContext->has($expression)) {
+          $value = $systemContext->get($expression);
+        } else {
+          // TODO: Add default replacement if no value could be found?
+          $value = '';
+        }
+      } elseif(preg_match_all($processorRegex,$expression) > 0) {
         // Processors set
-        $func = function ($matches) use ($context) {
+        $func = function ($matches) use ($context,$systemContext) {
           $value = $context->get($parts[1]);
-          $processor = $matches[3];
+          $processor = $context->getProcessor($matches[3]);
 
-          // TODO !
+          if($processor != false) {
+            $value = $processor($value,$context);
+          } else {
+            $processor = $systemContext->getProcessor($matches[3]);
+
+            if($processor != false) {
+              $value = $processor($value,$systemContext);
+            } else {
+              // TODO: Add default replacement if no value could be found?
+              $value = '';
+            }
+          }
         };
 
         do {
-          $expression = preg_replace_callback('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$func,$expression);
-        } while (preg_match_all('/^([\w-.]+)( ?\| ?)([\w-.]+)/',$expression));
+          $expression = preg_replace_callback($processorRegex,$func,$expression);
+        } while (preg_match_all($processorRegex,$expression) > 0);
+
+        $strip =  '/('.
+                  RegExHelper::$GENERAL->start.
+                  '|'.
+                  RegExHelper::$GENERAL->end.
+                  ')/';
+        $value = preg_replace($strip,'',$value);
+
+        if($context->has($value)) {
+          $value = $context->get($value);
+        } elseif($systemContext->has($value)) {
+          $value = $systemContext->get($value);
+        } else {
+          // TODO: Add default replacement if no value could be found?
+          $value = '';
+        }
       } else {
-        $value = $context->get($expression);
+        if($context->has($expression)) {
+          $value = $context->get($expression);
+        } elseif($systemContext->has($expression)) {
+          $value = $systemContext->get($expression);
+        } else {
+          // TODO: Add default replacement if no value could be found?
+          $value = '';
+        }
       }
 
       return $value;
     };
-    $tpl = preg_replace_callback('/({{ ?)(.+)( ?}})/',$func,$tpl);
+    $regexp = '/'.
+              RegExHelper::$GENERAL->start.
+              RegExHelper::$GENERAL->any.
+              RegExHelper::$GENERAL->end.
+              '/';
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Template rendering
     $func = function($matches) use ($context) {
@@ -176,7 +251,12 @@ class Tempearly {
 
       return $this->render($identifier,$context);
     };
-    $tpl = preg_replace_callback('/({{tpl ?)([\w-]+)( ?}})/',$func,$tpl);
+    $regexp = '/'.
+              RegExHelper::$KEYWORDS->template.
+              RegExHelper::$GENERAL->id.
+              RegExHelper::$GENERAL->end.
+              '/'.
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     return $tpl;
   }
@@ -186,10 +266,10 @@ class Tempearly {
   /**
    * Builds up the system context.
    *
-   * @return Tempearly\Context
+   * @return Context
    */
   private function buildContext() {
-    return new Tempearly\Context(array(
+    return new Context(array(
       'rule' => '<hr />'
     ));
   }
@@ -241,12 +321,9 @@ class Tempearly {
    * @return string The minified html
    */
   public static function minify($html) {
-    // Unecessary whitespaces outside of tags
-    $html = preg_replace('/((?<=>)[^\S ]+|[^\S ]+(?=<))/','',$html);
-    // Unecessary whitespaces within tags
-    $html = preg_replace('/(\s)+\s/',' ',$html);
-    // HTML comments
-    $html = preg_replace('/<!--.*-->/','',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER->whitespaceOutsideTags,'',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER->multipleWhitespaces,' ',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER->htmlComments,'',$html);
 
     return $html;
   }
