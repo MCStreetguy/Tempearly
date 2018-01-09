@@ -114,15 +114,26 @@ class Tempearly {
     $tpl = preg_replace_callback('/({{if )([\w-]+)(}})([\w\W]+?)(?={{\/if}})({{\/if}})/',$func,$tpl);
 
     // Ternary operators
-    $func = function ($matches) use ($context) {
+    $func = function ($matches) use ($context, $systemContext) {
       $condition = $matches[2];
       $ifVariableName = $matches[4];
       $elseVariableName = $matches[6];
 
-      if($context->get($condition) == true) {
-        return $context->get($ifVariableName);
+      if($context->has($condition) && $context->has($ifVariableName) && $context->has($elseVariableName)) {
+        if($context->get($condition) == true) {
+          return $context->get($ifVariableName);
+        } else {
+          return $context->get($elseVariableName);
+        }
+      } elseif($systemContext->has($condition) && $systemContext->has($ifVariableName) && $systemContext->has($elseVariableName)) {
+        if($systemContext->get($condition) == true) {
+          return $systemContext->get($ifVariableName);
+        } else {
+          return $systemContext->get($elseVariableName);
+        }
       } else {
-        return $context->get($elseVariableName);
+        // TODO: Add default replacement if the values could not be found?
+        return '';
       }
     };
     $tpl = preg_replace_callback('/({{)([\w-.]+)( ?\? ?)([\w-.\"\']+)( ?: ?)([\w-.\"\']+)(}})/',$func,$tpl);

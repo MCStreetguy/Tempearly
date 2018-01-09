@@ -67,14 +67,18 @@ class Context {
    * @return mixed
    */
   public function get(string $key) {
-    if($key == '_all') {
-      return $this->CONTENTS;
-    }
-
     $result;
     $default = '';
 
-    if(strpos($key,'.') != false) {
+    if(strtolower($key) == '_all') {
+      $result = $this->CONTENTS;
+    } elseif(strtolower($key) == 'true') {
+      $result = true;
+    } elseif(strtolower($key) == 'false') {
+      $result = false;
+    } elseif(preg_match_all('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
+      $result = $result[2];
+    } elseif(strpos($key,'.') != false) {
       $key = explode('.',$key);
 
       if($this->has($key[0])) {
@@ -109,7 +113,32 @@ class Context {
    * @return bool
    */
   public function has(string $key) {
-    return array_key_exists($key,$this->CONTENTS);
+    $result;
+
+    if(strpos($key,'.') != false) {
+      $key = explode('.',$key);
+
+      if(array_key_exists($key[0],$this->CONTENTS)) {
+        $result = $this->CONTENTS;
+
+        foreach ($key as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
+          } else {
+            $result = false;
+            break;
+          }
+        }
+
+        $result = ($result != false);
+      } else {
+        $result = false;
+      }
+    } else {
+      $result = array_key_exists($key,$this->CONTENTS);
+    }
+
+    return $result;
   }
 
   /**
@@ -147,7 +176,7 @@ class Context {
    */
   public function register(string $name, Processor $processor, bool $force = false) {
     if(!array_key_exists($name,$this->PROCESSORS) || $force) {
-      $this->PROCESSORS[$name] = $processor;
+      $this->PROCESSORS->$name = $processor;
       return true;
     } else {
       return false;
