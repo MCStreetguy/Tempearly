@@ -90,13 +90,14 @@ class Tempearly {
       }
     };
     $regexp = '/'.
-              RegExHelper::$CONDITIONS->start.
-              RegExHelper::$CONDITIONS->body.
-              RegExHelper::$CONDITIONS->else.
-              RegExHelper::$CONDITIONS->body.
-              RegExHelper::$CONDITIONS->end.
+              RegExHelper::$CONDITIONS['start'].
+              RegExHelper::$CONDITIONS['body'].
+              RegExHelper::$CONDITIONS['else'].
+              RegExHelper::$CONDITIONS['body'].
+              RegExHelper::$CONDITIONS['end'].
               '/';
-    $tpl = preg_replace_callback($regex,$func,$tpl);
+
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // If-Conditions
     $func = function($matches) use ($systemContext, $context, $hasContext) {
@@ -121,10 +122,11 @@ class Tempearly {
       }
     };
     $regexp = '/'.
-              RegExHelper::$CONDITIONS->start.
-              RegExHelper::$CONDITIONS->body.
-              RegExHelper::$CONDITIONS->end.
+              RegExHelper::$CONDITIONS['start'].
+              RegExHelper::$CONDITIONS['body'].
+              RegExHelper::$CONDITIONS['end'].
               '/';
+
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Ternary operators
@@ -151,14 +153,15 @@ class Tempearly {
       }
     };
     $regexp = '/'.
-              RegExHelper::$GENERAL->start.
-              RegExHelper::$GENERAL->value.
-              RegExHelper::$CONDITIONS->ternary.
-              RegExHelper::$GENERAL->value.
-              RegExHelper::$DELIMITER->ternary.
-              RegExHelper::$GENERAL->value.
-              RegExHelper::$GENERAL->end.
+              RegExHelper::$GENERAL['start'].
+              RegExHelper::$GENERAL['value'].
+              RegExHelper::$CONDITIONS['ternary'].
+              RegExHelper::$GENERAL['value'].
+              RegExHelper::$DELIMITER['ternary'].
+              RegExHelper::$GENERAL['value'].
+              RegExHelper::$GENERAL['end'].
               '/';
+
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Variable replacement
@@ -168,9 +171,9 @@ class Tempearly {
       $value;
 
       $processorRegex = '/^'.
-                        RegExHelper::$GENERAL->value.
-                        RegExHelper::$DELIMITER->processor.
-                        RegExHelper::$GENERAL->value.
+                        RegExHelper::$GENERAL['value'].
+                        RegExHelper::$DELIMITER['processor'].
+                        RegExHelper::$GENERAL['value'].
                         '/';
 
       if(strpos($expression,',')) {
@@ -189,8 +192,8 @@ class Tempearly {
       } elseif(preg_match_all($processorRegex,$expression) > 0) {
         // Processors set
         $func = function ($matches) use ($context,$systemContext) {
-          $value = $context->get($parts[1]);
-          $processor = $context->getProcessor($matches[3]);
+          $value = $hasContext && $context->get($matches[1]);
+          $processor = $hasContext && $context->getProcessor($matches[3]);
 
           if($processor != false) {
             $value = $processor($value,$context);
@@ -211,13 +214,13 @@ class Tempearly {
         } while (preg_match_all($processorRegex,$expression) > 0);
 
         $strip =  '/('.
-                  RegExHelper::$GENERAL->start.
+                  RegExHelper::$GENERAL['start'].
                   '|'.
-                  RegExHelper::$GENERAL->end.
+                  RegExHelper::$GENERAL['end'].
                   ')/';
         $value = preg_replace($strip,'',$value);
 
-        if($context->has($value)) {
+        if($hasContext && $context->has($value)) {
           $value = $context->get($value);
         } elseif($systemContext->has($value)) {
           $value = $systemContext->get($value);
@@ -226,7 +229,7 @@ class Tempearly {
           $value = '';
         }
       } else {
-        if($context->has($expression)) {
+        if($hasContext && $context->has($expression)) {
           $value = $context->get($expression);
         } elseif($systemContext->has($expression)) {
           $value = $systemContext->get($expression);
@@ -239,9 +242,9 @@ class Tempearly {
       return $value;
     };
     $regexp = '/'.
-              RegExHelper::$GENERAL->start.
-              RegExHelper::$GENERAL->any.
-              RegExHelper::$GENERAL->end.
+              RegExHelper::$GENERAL['start'].
+              RegExHelper::$GENERAL['any'].
+              RegExHelper::$GENERAL['end'].
               '/';
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
@@ -252,9 +255,9 @@ class Tempearly {
       return $this->render($identifier,$context);
     };
     $regexp = '/'.
-              RegExHelper::$KEYWORDS->template.
-              RegExHelper::$GENERAL->id.
-              RegExHelper::$GENERAL->end.
+              RegExHelper::$KEYWORDS['template'].
+              RegExHelper::$GENERAL['id'].
+              RegExHelper::$GENERAL['end'].
               '/'.
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
@@ -321,9 +324,9 @@ class Tempearly {
    * @return string The minified html
    */
   public static function minify($html) {
-    $html = preg_replace(RegExHelper::$MINIFIER->whitespaceOutsideTags,'',$html);
-    $html = preg_replace(RegExHelper::$MINIFIER->multipleWhitespaces,' ',$html);
-    $html = preg_replace(RegExHelper::$MINIFIER->htmlComments,'',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER['whitespaceOutsideTags'],'',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER['multipleWhitespaces'],' ',$html);
+    $html = preg_replace(RegExHelper::$MINIFIER['htmlComments'],'',$html);
 
     return $html;
   }
