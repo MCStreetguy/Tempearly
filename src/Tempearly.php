@@ -128,12 +128,12 @@ class Tempearly {
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Ternary operators
-    $func = function ($matches) use ($context, $systemContext) {
+    $func = function ($matches) use ($hasContext, $context, $systemContext) {
       $condition = $matches[2];
       $ifVariableName = $matches[4];
       $elseVariableName = $matches[6];
 
-      if($context->has($condition) && $context->has($ifVariableName) && $context->has($elseVariableName)) {
+      if($hasContext && $context->has($condition) && $context->has($ifVariableName) && $context->has($elseVariableName)) {
         if($context->get($condition) == true) {
           return $context->get($ifVariableName);
         } else {
@@ -162,7 +162,7 @@ class Tempearly {
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Variable replacement
-    $func = function($matches) use ($context,$systemContext) {
+    $func = function($matches) use ($hasContext,$context,$systemContext) {
       $expression = $matches[2];
 
       $value;
@@ -178,7 +178,7 @@ class Tempearly {
         $expression = preg_split(RegExHelper::$DELIMITER->randomizer,$expression);
         $expression = $expression[rand(0,count($expression))];
 
-        if($context->has($expression)) {
+        if($hasContext && $context->has($expression)) {
           $value = $context->get($expression);
         } elseif($systemContext->has($expression)) {
           $value = $systemContext->get($expression);
