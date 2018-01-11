@@ -169,7 +169,7 @@ class Tempearly {
     };
     $regexp = '/'.
               RegExHelper::$KEYWORDS['template'].
-              RegExHelper::$GENERAL['id'].
+              RegExHelper::$GENERAL['filename'].
               RegExHelper::$GENERAL['end'].
               '/';
     $tpl = preg_replace_callback($regexp,$func,$tpl);
