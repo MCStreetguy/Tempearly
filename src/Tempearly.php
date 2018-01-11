@@ -86,7 +86,7 @@ class Tempearly {
           return $alternate;
         }
       } else {
-        return $alternate;
+        return $alternate; 
       }
     };
     $regexp = '/'.
