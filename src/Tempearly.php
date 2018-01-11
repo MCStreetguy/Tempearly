@@ -86,7 +86,7 @@ class Tempearly {
           return $alternate;
         }
       } else {
-        return $alternate; 
+        return $alternate;
       }
     };
     $regexp = '/'.
@@ -163,8 +163,6 @@ class Tempearly {
 
     // Template rendering
     $func = function($matches) use ($context) {
-      d($matches);
-
       $identifier = $matches[2];
 
       return $this->render($identifier,$context);
