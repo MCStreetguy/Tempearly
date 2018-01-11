@@ -96,7 +96,6 @@ class Tempearly {
               RegExHelper::$CONDITIONS['body'].
               RegExHelper::$CONDITIONS['end'].
               '/';
-
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // If-Conditions
@@ -126,7 +125,6 @@ class Tempearly {
               RegExHelper::$CONDITIONS['body'].
               RegExHelper::$CONDITIONS['end'].
               '/';
-
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Ternary operators
@@ -161,7 +159,21 @@ class Tempearly {
               RegExHelper::$GENERAL['value'].
               RegExHelper::$GENERAL['end'].
               '/';
+    $tpl = preg_replace_callback($regexp,$func,$tpl);
 
+    // Template rendering
+    $func = function($matches) use ($context) {
+      d($matches);
+
+      $identifier = $matches[2];
+
+      return $this->render($identifier,$context);
+    };
+    $regexp = '/'.
+              RegExHelper::$KEYWORDS['template'].
+              RegExHelper::$GENERAL['id'].
+              RegExHelper::$GENERAL['end'].
+              '/';
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     // Variable replacement
@@ -175,7 +187,6 @@ class Tempearly {
                         RegExHelper::$DELIMITER['processor'].
                         RegExHelper::$GENERAL['value'].
                         '/';
-
       if(strpos($expression,',')) {
         // Value randomization
         $expression = preg_split(RegExHelper::$DELIMITER->randomizer,$expression);
@@ -246,19 +257,6 @@ class Tempearly {
               RegExHelper::$GENERAL['any'].
               RegExHelper::$GENERAL['end'].
               '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
-
-    // Template rendering
-    $func = function($matches) use ($context) {
-      $identifier = $matches[2];
-
-      return $this->render($identifier,$context);
-    };
-    $regexp = '/'.
-              RegExHelper::$KEYWORDS['template'].
-              RegExHelper::$GENERAL['id'].
-              RegExHelper::$GENERAL['end'].
-              '/'.
     $tpl = preg_replace_callback($regexp,$func,$tpl);
 
     return $tpl;
