@@ -12,17 +12,17 @@ use MCStreetguy\Tempearly\Interfaces\Processor;
 class Context {
 
   /**
-   * @var array $PROTECTED Contains protected key names
+   * @var array $protected Contains protected key names
    */
-  private $PROTECTED = [
+  protected $protected = [
     '_all'
   ];
 
   /**
-   * @var array $CONTENTS The context contents
-   * @var array $PROCESSORS The context processors
+   * @var array $contents The context contents
+   * @var array $processors The context processors
    */
-  private $CONTENTS, $PROCESSORS;
+  protected $contents = [], $processors = [];
 
   /**
    * Initiates a new context object.
@@ -32,15 +32,15 @@ class Context {
    */
   function __construct(array $content = null, array $processors = null) {
     if(!empty($content) && is_array($content)) {
-      $this->CONTENTS = $content;
-    } else {
-      $this->CONTENTS = array();
+      foreach ($content as $key => $value) {
+        $this->push($key,$value);
+      }
     }
 
     if(!empty($processors) && is_array($processors)) {
-      $this->PROCESSORS = $processors;
-    } else {
-      $this->CONTENTS = array();
+      foreach ($processors as $key => $value) {
+        $this->register($key,$value);
+      }
     }
   }
 
@@ -52,10 +52,10 @@ class Context {
    * @return bool
    */
   public function push(string $key,$value) {
-    if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->PROTECTED)) {
+    if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->protected)) {
       return false;
     } else {
-      $this->CONTENTS[$key] = $value;
+      $this->contents[$key] = $value;
       return true;
     }
   }
@@ -71,7 +71,7 @@ class Context {
     $default = '';
 
     if(strtolower($key) == '_all') {
-      $result = $this->CONTENTS;
+      $result = $this->contents;
     } elseif(strtolower($key) == 'true') {
       $result = true;
     } elseif(strtolower($key) == 'false') {
@@ -86,7 +86,7 @@ class Context {
       $key = explode('.',$key);
 
       if($this->has($key[0])) {
-        $result = $this->CONTENTS;
+        $result = $this->contents;
 
         foreach ($key as $key => $value) {
           if(is_array($result) && array_key_exists($value,$result)) {
@@ -101,7 +101,7 @@ class Context {
       }
     } else {
       if($this->has($key)) {
-        $result = $this->CONTENTS->$key;
+        $result = $this->contents->$key;
       } else {
         $result = $default;
       }
@@ -122,8 +122,8 @@ class Context {
     if(strpos($key,'.') != false) {
       $key = explode('.',$key);
 
-      if(array_key_exists($key[0],$this->CONTENTS)) {
-        $result = $this->CONTENTS;
+      if(array_key_exists($key[0],$this->contents)) {
+        $result = $this->contents;
 
         foreach ($key as $key => $value) {
           if(is_array($result) && array_key_exists($value,$result)) {
@@ -139,7 +139,7 @@ class Context {
         $result = false;
       }
     } else {
-      $result = array_key_exists($key,$this->CONTENTS);
+      $result = array_key_exists($key,$this->contents);
     }
 
     return $result;
@@ -153,7 +153,7 @@ class Context {
    * @return void
    */
   public function protect(string $key) {
-    $this->PROTECTED[] = $key;
+    $this->protected[] = $key;
   }
 
   /**
@@ -163,8 +163,8 @@ class Context {
    * @return Processor|bool
    */
   public function getProcessor(string $name) {
-    if(!empty($name) && array_key_exists($name,$this->PROCESSORS)) {
-      return $this->PROCESSORS->$name;
+    if(!empty($name) && array_key_exists($name,$this->processors)) {
+      return $this->processors->$name;
     } else {
       return false;
     }
@@ -179,8 +179,8 @@ class Context {
    * @return bool
    */
   public function register(string $name, Processor $processor, bool $force = false) {
-    if(!array_key_exists($name,$this->PROCESSORS) || $force) {
-      $this->PROCESSORS->$name = $processor;
+    if(!array_key_exists($name,$this->processors) || $force) {
+      $this->processors->$name = $processor;
       return true;
     } else {
       return false;
