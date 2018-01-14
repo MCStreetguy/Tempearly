@@ -32,15 +32,11 @@ class Context {
    */
   function __construct(array $content = null, array $processors = null) {
     if(!empty($content) && is_array($content)) {
-      foreach ($content as $key => $value) {
-        $this->push($key,$value);
-      }
+      $this->expand($content);
     }
 
     if(!empty($processors) && is_array($processors)) {
-      foreach ($processors as $key => $value) {
-        $this->register($key,$value);
-      }
+      $this->registerAll($processors);
     }
   }
 
@@ -58,6 +54,21 @@ class Context {
       $this->contents[$key] = $value;
       return true;
     }
+  }
+
+  /**
+   * Adds an array of entries to the context.
+   *
+   * @param array $entries The key-value-pairs to add
+   * @return bool
+   */
+  public function expand(array $entries) {
+    $result = true;
+    foreach ($entries as $key => $value) {
+      $result = ($result && $this->push($key,$value));
+    }
+
+    return $result;
   }
 
   /**
@@ -185,6 +196,21 @@ class Context {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Registers multiple processors at once.
+   *
+   * @param array $processors The processors to register
+   * @return bool
+   */
+  public function registerAll(array $processors) {
+    $result = true;
+    foreach ($processors as $key => $value) {
+      $result = ($result && $this->register($key,$value));
+    }
+
+    return $result;
   }
 }
 
