@@ -101,7 +101,7 @@ class Context {
       }
     } else {
       if($this->has($key)) {
-        $result = $this->contents->$key;
+        $result = $this->contents[$key];
       } else {
         $result = $default;
       }
@@ -164,7 +164,7 @@ class Context {
    */
   public function getProcessor(string $name) {
     if(!empty($name) && array_key_exists($name,$this->processors)) {
-      return $this->processors->$name;
+      return $this->processors[$name];
     } else {
       return false;
     }
@@ -180,7 +180,7 @@ class Context {
    */
   public function register(string $name, Processor $processor, bool $force = false) {
     if(!array_key_exists($name,$this->processors) || $force) {
-      $this->processors->$name = $processor;
+      $this->processors[$name] = $processor;
       return true;
     } else {
       return false;
