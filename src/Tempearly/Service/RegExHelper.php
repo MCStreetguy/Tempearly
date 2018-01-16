@@ -12,11 +12,11 @@ abstract class RegExHelper {
    */
   public static $GENERAL = [
     "start" => "({{ ?)",
-    "value" => "([\"\']?[\w-. ]+[\"\']?)",
+    "value" => "([\"\']?[\w-. ]+?[\"\']?)",
     "end" => "( ?}})",
     "any" => "(.+?)",
-    "id" => "([\w-.]+)",
-    "filename" => "([\w-.\/\\\\]+)"
+    "id" => "([\w-.]+?)",
+    "filename" => "([\w-.\/\\\\]+?)"
   ];
 
   /**
@@ -32,7 +32,7 @@ abstract class RegExHelper {
    * @var array $CONDITIONS
    */
   public static $CONDITIONS = [
-    "start" => "({{if )([\w-]+)(}})",
+    "start" => "({{if )([\w-.]+)(}})",
     "end" => "(?={{\/if}})({{\/if}})",
     "body" => "([\w\W]+?)",
     "else" => "({{else}})",
