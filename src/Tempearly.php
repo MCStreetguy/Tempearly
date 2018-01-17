@@ -188,7 +188,7 @@ class Tempearly {
       if(strpos($expression,',')) {
         // Value randomization
         $expression = preg_split('/'.RegExHelper::$DELIMITER['randomizer'].'/',$expression);
-        $expression = $expression[rand(0,count($expression))];
+        $expression = $expression[rand(0,count($expression)-1)];
 
         if($hasContext && $context->has($expression)) {
           $value = $context->get($expression);
