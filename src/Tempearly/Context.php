@@ -51,7 +51,32 @@ class Context {
     if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->protected)) {
       return false;
     } else {
-      $this->contents[$key] = $value;
+      if(strpos($key,'.') != false) {
+        $key = explode('.',$key);
+
+        if($this->has($key[0])) {
+          $result = $this->contents;
+          $query = '$this->contents';
+
+          for ($i=0; $i < count($key); $i++) {
+            $query .= '["'.$key[$i].'"]';
+
+            if((is_array($result) && array_key_exists($key[$i],$result)) || $i == count($key) - 1) {
+              $result = $result[$key[$i]];
+            } else {
+              return false;
+            }
+          }
+
+          $query .= ' = $value;';
+          eval($query);
+        } else {
+          return false;
+        }
+      } else {
+        $this->contents[$key] = $value;
+      }
+
       return true;
     }
   }
@@ -91,7 +116,7 @@ class Context {
       $result = floatval($key);
     } elseif(intval($key) && floatval($key) == intval($key)) {
       $result = intval($key);
-    } elseif(preg_match_all('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
+    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
       $result = $result[2];
     } elseif(strpos($key,'.') != false) {
       $key = explode('.',$key);
@@ -130,7 +155,17 @@ class Context {
   public function has(string $key) {
     $result;
 
-    if(strpos($key,'.') != false) {
+    if(strtolower($key) == 'true') {
+      $result = true;
+    } elseif(strtolower($key) == 'false') {
+      $result = false;
+    } elseif(floatval($key) && floatval($key) != intval($key)) {
+      $result = floatval($key);
+    } elseif(intval($key) && floatval($key) == intval($key)) {
+      $result = intval($key);
+    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
+      $result = $result[2];
+    } elseif(strpos($key,'.') != false) {
       $key = explode('.',$key);
 
       if(array_key_exists($key[0],$this->contents)) {
