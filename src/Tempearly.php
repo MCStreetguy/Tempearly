@@ -268,9 +268,9 @@ class Tempearly {
    * @return Context
    */
   private function buildContext() {
-    return new Context(array(
-      'rule' => '<hr />'
-    ));
+   return new Context([
+     '_UID' => uniqid('uid_',false)
+   ]);
   }
 
   // Getter & Setter
