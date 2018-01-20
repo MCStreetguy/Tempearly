@@ -326,6 +326,43 @@ class Tempearly {
 
     return $html;
   }
+
+  /**
+   * @param string $expression
+   * @param array $context
+   * @return mixed
+   */
+  public function parseExpression(string $expression, $context = null) {
+    $hasContext;
+    if(!empty($context)) {
+      if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
+        throw new Exception('Invalid Arguments!',1);
+      } elseif(is_array($context)) {
+        $context = new Context($context);
+      }
+      $hasContext = true;
+    } else {
+      $hasContext = false;
+    }
+    $systemContext = $this->buildContext();
+
+    $values = [];
+    preg_match_all('/([\w.]|((?<! )-(?! )))+/',$expression,$values);
+
+    foreach ($values[0] as $value) {
+      if($hasContext && $context->has($value)) {
+        $res = $context->get($value,true);
+      } elseif($systemContext->has($value)) {
+        $res = $systemContext->get($value,true);
+      } else {
+        $res = 'null';
+      }
+
+      $expression = str_replace($value,$res,$expression);
+    }
+
+    return eval('return ('.$expression.');');
+  }
 }
 
 ?>

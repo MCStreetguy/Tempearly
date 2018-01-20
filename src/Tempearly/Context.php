@@ -100,46 +100,45 @@ class Context {
    * Get a value from the context.
    *
    * @param string $key The keypath to return or '_all'
+   * @param bool $forceString
    * @return mixed
    */
-  public function get(string $key) {
+  public function get(string $key, bool $forceString = false) {
     $result;
     $default = '';
 
     if(strtolower($key) == '_all') {
       $result = $this->contents;
-    } elseif(strtolower($key) == 'true') {
-      $result = true;
-    } elseif(strtolower($key) == 'false') {
-      $result = false;
-    } elseif(floatval($key) && floatval($key) != intval($key)) {
-      $result = floatval($key);
-    } elseif(intval($key) && floatval($key) == intval($key)) {
-      $result = intval($key);
-    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
-      $result = $result[2];
-    } elseif(strpos($key,'.') != false) {
-      $key = explode('.',$key);
+    } else {
+      $result = $this->parseValue($key,$forceString);
 
-      if($this->has($key[0])) {
-        $result = $this->contents;
+      if($result == null || $result == 'null') {
+        if(strpos($key,'.') != false) {
+          $key = explode('.',$key);
 
-        foreach ($key as $key => $value) {
-          if(is_array($result) && array_key_exists($value,$result)) {
-            $result = $result[$value];
+          if($this->has($key[0])) {
+            $result = $this->contents;
+
+            foreach ($key as $key => $value) {
+              if(is_array($result) && array_key_exists($value,$result)) {
+                $result = $result[$value];
+              } else {
+                $result = $default;
+                break;
+              }
+            }
           } else {
             $result = $default;
-            break;
+          }
+        } else {
+          if($this->has($key)) {
+            $result = $this->contents[$key];
+          } else {
+            $result = $default;
           }
         }
-      } else {
-        $result = $default;
-      }
-    } else {
-      if($this->has($key)) {
-        $result = $this->contents[$key];
-      } else {
-        $result = $default;
+
+        $result = $this->parseValue($result,$forceString);
       }
     }
 
@@ -153,39 +152,33 @@ class Context {
    * @return bool
    */
   public function has(string $key) {
-    $result;
+    $result = $this->parseValue($key);
 
-    if(strtolower($key) == 'true') {
-      $result = true;
-    } elseif(strtolower($key) == 'false') {
-      $result = false;
-    } elseif(floatval($key) && floatval($key) != intval($key)) {
-      $result = floatval($key);
-    } elseif(intval($key) && floatval($key) == intval($key)) {
-      $result = intval($key);
-    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$key,$result)) {
-      $result = $result[2];
-    } elseif(strpos($key,'.') != false) {
-      $key = explode('.',$key);
+    if($result == null) {
+      if(strpos($key,'.') != false) {
+        $key = explode('.',$key);
 
-      if(array_key_exists($key[0],$this->contents)) {
-        $result = $this->contents;
+        if(array_key_exists($key[0],$this->contents)) {
+          $result = $this->contents;
 
-        foreach ($key as $key => $value) {
-          if(is_array($result) && array_key_exists($value,$result)) {
-            $result = $result[$value];
-          } else {
-            $result = false;
-            break;
+          foreach ($key as $key => $value) {
+            if(is_array($result) && array_key_exists($value,$result)) {
+              $result = $result[$value];
+            } else {
+              $result = false;
+              break;
+            }
           }
-        }
 
-        $result = ($result != false);
+          $result = ($result != false);
+        } else {
+          $result = false;
+        }
       } else {
-        $result = false;
+        $result = array_key_exists($key,$this->contents);
       }
     } else {
-      $result = array_key_exists($key,$this->contents);
+      $result = true;
     }
 
     return $result;
@@ -243,6 +236,49 @@ class Context {
     $result = true;
     foreach ($processors as $key => $value) {
       $result = ($result && $this->register($key,$value));
+    }
+
+    return $result;
+  }
+
+  /**
+   * Tries to parse a plain value.
+   *
+   * @param string $valueExpression The value expression to parse
+   * @param bool $forceString Force conversion of value to string
+   * @return mixed
+   */
+  public static function parseValue(string $valueExpression, bool $forceString = false) {
+    $result;
+
+    if($forceString) {
+      if(strtolower($valueExpression) == 'true') {
+        $result = 'true';
+      } elseif(strtolower($valueExpression) == 'false') {
+        $result = 'false';
+      } elseif(floatval($valueExpression) && floatval($valueExpression) != intval($valueExpression)) {
+        $result = (string)floatval($valueExpression);
+      } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
+        $result = (string)intval($valueExpression);
+      } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
+        $result = (string)$result[2];
+      } else {
+        $result = 'null';
+      }
+    } else {
+      if(strtolower($valueExpression) == 'true') {
+        $result = true;
+      } elseif(strtolower($valueExpression) == 'false') {
+        $result = false;
+      } elseif(floatval($valueExpression) && floatval($valueExpression) != intval($valueExpression)) {
+        $result = floatval($valueExpression);
+      } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
+        $result = intval($valueExpression);
+      } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
+        $result = $result[2];
+      } else {
+        $result = null;
+      }
     }
 
     return $result;
