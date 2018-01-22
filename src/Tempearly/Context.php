@@ -261,7 +261,7 @@ class Context {
       } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
         $result = (string)intval($valueExpression);
       } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
-        $result = (string)$result[2];
+        $result = $result[0];
       } else {
         $result = 'null';
       }
