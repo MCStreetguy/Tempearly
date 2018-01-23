@@ -137,8 +137,6 @@ class Context {
             $result = $default;
           }
         }
-
-        $result = $this->parseValue($result,$forceString);
       }
     }
 
@@ -248,7 +246,7 @@ class Context {
    * @param bool $forceString Force conversion of value to string
    * @return mixed
    */
-  public static function parseValue(string $valueExpression, bool $forceString = false) {
+  public function parseValue(string $valueExpression, bool $forceString = false) {
     $result;
 
     if($forceString) {
@@ -261,9 +259,9 @@ class Context {
       } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
         $result = (string)intval($valueExpression);
       } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
-        $result = (string)$result[2];
+        $result = $result[0];
       } else {
-        $result = 'null';
+        $result = "\"".$valueExpression."\"";
       }
     } else {
       if(strtolower($valueExpression) == 'true') {
