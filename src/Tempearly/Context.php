@@ -58,17 +58,18 @@ class Context {
           $result = $this->contents;
           $query = '$this->contents';
 
-          for ($i=0; $i < count($key); $i++) {
+          for ($i=0; $i < count($key) - 1; $i++) {
             $query .= '["'.$key[$i].'"]';
 
-            if((is_array($result) && array_key_exists($key[$i],$result)) || $i == count($key) - 1) {
+            if(is_array($result) && array_key_exists($key[$i],$result)) {
               $result = $result[$key[$i]];
             } else {
               return false;
             }
           }
 
-          $query .= ' = $value;';
+          $query .= '["'.$key[count($key)-1].'"] = $value;';
+
           eval($query);
         } else {
           return false;
