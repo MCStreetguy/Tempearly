@@ -1,0 +1,21 @@
+site_name: 'Tempearly'
+site_author: 'Maximilian Schmidt'
+site_description: 'Official documentation of Tempearly - A tiny PHP templating engine.'
+site_url: 'tempearly.readthedocs.io'
+pages:
+  - Home: index.md
+  - References:
+    - Methods: reference.md
+    - Syntax: syntax.md
+theme: 'readthedocs'
+repo_url: https://github.com/MCStreetguy/Tempearly
+repo_name: 'GitHub'
+copyright: '&copy; 2018, Maximilian Schmidt'
+markdown_extensions:
+  - admonition
+  - codehilite
+  - meta
+  - toc:
+      permalink: true
+extra_css:
+  - 'style.css'

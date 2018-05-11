@@ -1,0 +1,72 @@
+p, table {
+  margin-bottom: 10px !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 15px !important;
+  margin-top: 15px !important;
+}
+
+pre.codehilite {
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: #f7f7f7;
+  word-wrap: normal;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font: 12px Consolas, Menlo, Courier, monospace;
+  border-left: 2px solid #2B80B4;
+}
+
+pre.codehilite > code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.admonition {
+  margin: 40px -15px 30px;
+  background: rgba(0,0,0,0.05);
+  padding: 0px !important;
+}
+
+.admonition > .admonition-title {
+  max-width: 100%;
+  margin: 0 !important;
+}
+
+.admonition > p:not(.admonition-title) {
+  padding: 10px;
+  font-size: 93%;
+}
+
+code {
+  font-size: 90%;
+}
+
+nav li + ul > li > a {
+  padding-left: 50px !important;
+}
+
+blockquote {
+  background: #f9f9f9;
+  border-left: 2px solid #2B80B4;
+  margin: 0 !important;
+  padding: 0.5em 10px;
+  quotes: "\201C""\201D""\2018""\2019";
+}
+
+blockquote:before {
+  color: #ccc;
+  content: open-quote;
+  font-size: 4em;
+  line-height: 0.1em;
+  margin-right: 0.25em;
+  vertical-align: -0.4em;
+}
+
+blockquote p {
+  display: inline;
+}
