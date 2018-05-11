@@ -7,7 +7,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 15px !important;
 }
 
-pre.codehilite {
+pre.codehilite, .codehilite > pre {
   padding: 16px;
   overflow: auto;
   font-size: 85%;
