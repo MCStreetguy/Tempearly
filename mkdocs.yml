@@ -1,7 +1,7 @@
 site_name: 'Tempearly'
 site_author: 'Maximilian Schmidt'
 site_description: 'Official documentation of Tempearly - A tiny PHP templating engine.'
-site_url: 'tempearly.readthedocs.io'
+site_url: 'http://tempearly.readthedocs.io'
 pages:
   - Home: index.md
   - References:
