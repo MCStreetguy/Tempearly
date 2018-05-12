@@ -27,7 +27,9 @@ abstract class SyntaxParser
   {
     $source = self::parseIfElse($source);
     $source = self::parseIf($source);
-    return self::parseTernary($source);
+    $source = self::parseTernary($source);
+
+    return $source;
   }
 
   /**
