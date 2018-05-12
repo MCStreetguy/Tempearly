@@ -84,3 +84,28 @@ blockquote p {
 .wy-nav-content {
   min-height: 100vh;
 }
+
+nav.wy-nav-side > .wy-side-nav-search > a.icon {
+  margin: 20px auto;
+  font-size: 30px;
+}
+
+nav.wy-nav-side > .wy-side-nav-search > div[role="search"] {
+  margin-bottom: 10px;
+}
+
+footer {
+  font-size: 70%;
+}
+
+footer > hr {
+  margin: 17px 0 13px;
+}
+
+footer > .rst-footer-buttons {
+  font-size: 150%;
+}
+
+footer > .contentinfo > p {
+  margin: 0;
+}
