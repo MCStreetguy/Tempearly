@@ -70,3 +70,17 @@ blockquote:before {
 blockquote p {
   display: inline;
 }
+
+/* Toctree FIX */
+.toctree-l4 {
+  padding-left: 43px !important;
+}
+
+.toctree-l1:not(.current) > a {
+  padding-left: 22px !important;
+}
+
+/* Page FIX */
+.wy-nav-content {
+  min-height: 100vh;
+}
