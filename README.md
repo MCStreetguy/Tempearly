@@ -8,6 +8,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/mcstreetguy/tempearly.svg)](https://github.com/MCStreetguy/Tempearly/commits/master)
 [![GitHub repo size in bytes](https://img.shields.io/github/repo-size/mcstreetguy/tempearly.svg)](https://github.com/MCStreetguy/Tempearly)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/mcstreetguy/tempearly.svg)](https://github.com/MCStreetguy/Tempearly/tree/master/src)
+[![Documentation Status](https://readthedocs.org/projects/tempearly/badge/?version=latest)](http://tempearly.readthedocs.io/en/latest/?badge=latest)
 
 A tiny PHP templating engine.
 
