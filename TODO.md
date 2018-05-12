@@ -17,3 +17,4 @@
 - [ ] Refactor code, subsplit classes
 - [ ] Improve tolerance for whitespaces in expressions
 - [ ] Renew expression syntax (!)
+- [ ] Automatically invoke getter functions if context variable chain contains an object
