@@ -1,9 +1,13 @@
 <?php
 
 namespace MCStreetguy;
+use Error;
 use Exception;
+use InvalidArgumentException;
 use MCStreetguy\Tempearly\Context;
 use MCStreetguy\Tempearly\Service\RegExHelper;
+use MCStreetguy\Tempearly\Exceptions\FileSystemException;
+use MCStreetguy\Tempearly\Exceptions\InvalidSyntaxException;
 
 /**
  * The main class of Tempearly rendering engine.
@@ -25,7 +29,8 @@ class Tempearly {
    * @param string $path The template folder path
    * @param string $extension [optional] The template file extension
    */
-  public function __construct($path, $extension = '.tpl.html') {
+  public function __construct(string $path, string $extension = '.tpl.html')
+  {
     $this->setPath($path);
     $this->setExtension($extension);
   }
@@ -37,14 +42,15 @@ class Tempearly {
    * @param array $context [optional] Additional context variables for template processing
    * @return string The parsed template string
    */
-  public function render($id,$context = null) {
+  public function render(string $id, $context = null) : string
+  {
     if(empty($id)) {
-      throw new Exception('Invalid Arguments!',1);
+      throw new InvalidArgumentException('$id cannot be empty!',1526135454);
     }
 
     $SOURCE = $this->PATH.$id.$this->EXTENSION;
     if(!file_exists($SOURCE)) {
-      throw new Exception('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!',2);
+      throw new FileSystemException('Template file "'.$SOURCE.'" doesn\'t exist or is not readable!',1526135618);
     }
 
     $tpl = file_get_contents($SOURCE);
@@ -53,7 +59,7 @@ class Tempearly {
 
     if(!empty($context)) {
       if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {
-        throw new Exception('Invalid Arguments!',1);
+        throw new InvalidArgumentException('$context is no instance of class Context and could not be converted!',1526135710);
       } elseif(is_array($context)) {
         $context = new Context($context);
       }
@@ -64,198 +70,203 @@ class Tempearly {
 
     $systemContext = $this->buildContext();
 
-    // Comments
-    $tpl = preg_replace(RegExHelper::$COMMENTS,'',$tpl);
+    try {
 
-    // If-Else-Conditions
-    $func = function($matches) use ($systemContext, $context, $hasContext) {
-      $condition = $matches[2];
-      $content = $matches[4];
-      $alternate = $matches[6];
+      // Comments
+      $tpl = preg_replace(RegExHelper::$COMMENTS,'',$tpl);
 
-      if($hasContext && $context->has($condition)) {
-        if($context->get($condition) == true) {
-          return $content;
+      // If-Else-Conditions
+      $func = function($matches) use ($systemContext, $context, $hasContext) {
+        $condition = $matches[2];
+        $content = $matches[4];
+        $alternate = $matches[6];
+
+        if($hasContext && $context->has($condition)) {
+          if($context->get($condition) == true) {
+            return $content;
+          } else {
+            return $alternate;
+          }
+        } elseif($systemContext->has($condition)) {
+          if($systemContext->get($condition) == true) {
+            return $content;
+          } else {
+            return $alternate;
+          }
         } else {
           return $alternate;
         }
-      } elseif($systemContext->has($condition)) {
-        if($systemContext->get($condition) == true) {
-          return $content;
-        } else {
-          return $alternate;
-        }
-      } else {
-        return $alternate;
-      }
-    };
-    $regexp = '/'.
-              RegExHelper::$CONDITIONS['start'].
-              RegExHelper::$CONDITIONS['body'].
-              RegExHelper::$CONDITIONS['else'].
-              RegExHelper::$CONDITIONS['body'].
-              RegExHelper::$CONDITIONS['end'].
-              '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
+      };
+      $regexp = '/'.
+                RegExHelper::$CONDITIONS['start'].
+                RegExHelper::$CONDITIONS['body'].
+                RegExHelper::$CONDITIONS['else'].
+                RegExHelper::$CONDITIONS['body'].
+                RegExHelper::$CONDITIONS['end'].
+                '/';
+      $tpl = preg_replace_callback($regexp,$func,$tpl);
 
-    // If-Conditions
-    $func = function($matches) use ($systemContext, $context, $hasContext) {
-      $condition = $matches[2];
-      $content = $matches[4];
+      // If-Conditions
+      $func = function($matches) use ($systemContext, $context, $hasContext) {
+        $condition = $matches[2];
+        $content = $matches[4];
 
-      if($hasContext && $context->has($condition)) {
-        if($context->get($condition) == true) {
-          return $content;
-        } else {
-          return '';
-        }
-      } elseif($systemContext->has($condition)) {
-        if($systemContext->get($condition) == true) {
-          return $content;
-        } else {
-          return '';
-        }
-      } else {
-        // TODO: Add default replacement if no value could be found?
-        return '';
-      }
-    };
-    $regexp = '/'.
-              RegExHelper::$CONDITIONS['start'].
-              RegExHelper::$CONDITIONS['body'].
-              RegExHelper::$CONDITIONS['end'].
-              '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
-
-    // Ternary operators
-    $func = function ($matches) use ($hasContext, $context, $systemContext) {
-      $condition = $matches[2];
-      $ifVariableName = $matches[4];
-      $elseVariableName = $matches[6];
-
-      if($hasContext && $context->has($condition) && $context->has($ifVariableName) && $context->has($elseVariableName)) {
-        if($context->get($condition) == true) {
-          return $context->get($ifVariableName);
-        } else {
-          return $context->get($elseVariableName);
-        }
-      } elseif($systemContext->has($condition) && $systemContext->has($ifVariableName) && $systemContext->has($elseVariableName)) {
-        if($systemContext->get($condition) == true) {
-          return $systemContext->get($ifVariableName);
-        } else {
-          return $systemContext->get($elseVariableName);
-        }
-      } else {
-        // TODO: Add default replacement if the values could not be found?
-        return '';
-      }
-    };
-    $regexp = '/'.
-              RegExHelper::$GENERAL['start'].
-              RegExHelper::$GENERAL['value'].
-              RegExHelper::$CONDITIONS['ternary'].
-              RegExHelper::$GENERAL['value'].
-              RegExHelper::$DELIMITER['ternary'].
-              RegExHelper::$GENERAL['value'].
-              RegExHelper::$GENERAL['end'].
-              '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
-
-    // Template rendering
-    $func = function($matches) use ($context) {
-      $identifier = $matches[2];
-
-      return $this->render($identifier,$context);
-    };
-    $regexp = '/'.
-              RegExHelper::$KEYWORDS['template'].
-              RegExHelper::$GENERAL['filename'].
-              RegExHelper::$GENERAL['end'].
-              '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
-
-    // Variable replacement
-    $func = function($matches) use ($hasContext,$context,$systemContext) {
-      $expression = $matches[2];
-
-      $value;
-
-      $processorRegex = '/^'.
-                        RegExHelper::$GENERAL['value'].
-                        RegExHelper::$DELIMITER['processor'].
-                        RegExHelper::$GENERAL['value'].
-                        '/';
-      if(strpos($expression,',')) {
-        // Value randomization
-        $expression = preg_split('/'.RegExHelper::$DELIMITER['randomizer'].'/',$expression);
-        $expression = $expression[rand(0,count($expression)-1)];
-
-        if($hasContext && $context->has($expression)) {
-          $value = $context->get($expression);
-        } elseif($systemContext->has($expression)) {
-          $value = $systemContext->get($expression);
+        if($hasContext && $context->has($condition)) {
+          if($context->get($condition) == true) {
+            return $content;
+          } else {
+            return '';
+          }
+        } elseif($systemContext->has($condition)) {
+          if($systemContext->get($condition) == true) {
+            return $content;
+          } else {
+            return '';
+          }
         } else {
           // TODO: Add default replacement if no value could be found?
-          $value = '';
+          return '';
         }
-      } elseif(preg_match_all($processorRegex,$expression) > 0) {
-        // Processors set
-        $func = function ($matches) use ($context,$systemContext) {
-          $value = $hasContext && $context->get($matches[1]);
-          $processor = $hasContext && $context->getProcessor($matches[3]);
+      };
+      $regexp = '/'.
+                RegExHelper::$CONDITIONS['start'].
+                RegExHelper::$CONDITIONS['body'].
+                RegExHelper::$CONDITIONS['end'].
+                '/';
+      $tpl = preg_replace_callback($regexp,$func,$tpl);
 
-          if($processor != false) {
-            $value = $processor($value,$context);
+      // Ternary operators
+      $func = function ($matches) use ($hasContext, $context, $systemContext) {
+        $condition = $matches[2];
+        $ifVariableName = $matches[4];
+        $elseVariableName = $matches[6];
+
+        if($hasContext && $context->has($condition) && $context->has($ifVariableName) && $context->has($elseVariableName)) {
+          if($context->get($condition) == true) {
+            return $context->get($ifVariableName);
           } else {
-            $processor = $systemContext->getProcessor($matches[3]);
+            return $context->get($elseVariableName);
+          }
+        } elseif($systemContext->has($condition) && $systemContext->has($ifVariableName) && $systemContext->has($elseVariableName)) {
+          if($systemContext->get($condition) == true) {
+            return $systemContext->get($ifVariableName);
+          } else {
+            return $systemContext->get($elseVariableName);
+          }
+        } else {
+          // TODO: Add default replacement if the values could not be found?
+          return '';
+        }
+      };
+      $regexp = '/'.
+                RegExHelper::$GENERAL['start'].
+                RegExHelper::$GENERAL['value'].
+                RegExHelper::$CONDITIONS['ternary'].
+                RegExHelper::$GENERAL['value'].
+                RegExHelper::$DELIMITER['ternary'].
+                RegExHelper::$GENERAL['value'].
+                RegExHelper::$GENERAL['end'].
+                '/';
+      $tpl = preg_replace_callback($regexp,$func,$tpl);
+
+      // Template rendering
+      $func = function($matches) use ($context) {
+        $identifier = $matches[2];
+
+        return $this->render($identifier,$context);
+      };
+      $regexp = '/'.
+                RegExHelper::$KEYWORDS['template'].
+                RegExHelper::$GENERAL['filename'].
+                RegExHelper::$GENERAL['end'].
+                '/';
+      $tpl = preg_replace_callback($regexp,$func,$tpl);
+
+      // Variable replacement
+      $func = function($matches) use ($hasContext,$context,$systemContext) {
+        $expression = $matches[2];
+
+        $value;
+
+        $processorRegex = '/^'.
+                          RegExHelper::$GENERAL['value'].
+                          RegExHelper::$DELIMITER['processor'].
+                          RegExHelper::$GENERAL['value'].
+                          '/';
+        if(strpos($expression,',')) {
+          // Value randomization
+          $expression = preg_split('/'.RegExHelper::$DELIMITER['randomizer'].'/',$expression);
+          $expression = $expression[rand(0,count($expression)-1)];
+
+          if($hasContext && $context->has($expression)) {
+            $value = $context->get($expression);
+          } elseif($systemContext->has($expression)) {
+            $value = $systemContext->get($expression);
+          } else {
+            // TODO: Add default replacement if no value could be found?
+            $value = '';
+          }
+        } elseif(preg_match_all($processorRegex,$expression) > 0) {
+          // Processors set
+          $func = function ($matches) use ($context,$systemContext) {
+            $value = $hasContext && $context->get($matches[1]);
+            $processor = $hasContext && $context->getProcessor($matches[3]);
 
             if($processor != false) {
-              $value = $processor($value,$systemContext);
+              $value = $processor($value,$context);
             } else {
-              // TODO: Add default replacement if no value could be found?
-              $value = '';
+              $processor = $systemContext->getProcessor($matches[3]);
+
+              if($processor != false) {
+                $value = $processor($value,$systemContext);
+              } else {
+                // TODO: Add default replacement if no value could be found?
+                $value = '';
+              }
             }
+          };
+
+          do {
+            $expression = preg_replace_callback($processorRegex,$func,$expression);
+          } while (preg_match_all($processorRegex,$expression) > 0);
+
+          $strip =  '/('.
+                    RegExHelper::$GENERAL['start'].
+                    '|'.
+                    RegExHelper::$GENERAL['end'].
+                    ')/';
+          $value = preg_replace($strip,'',$value);
+
+          if($hasContext && $context->has($value)) {
+            $value = $context->get($value);
+          } elseif($systemContext->has($value)) {
+            $value = $systemContext->get($value);
+          } else {
+            // TODO: Add default replacement if no value could be found?
+            $value = '';
           }
-        };
-
-        do {
-          $expression = preg_replace_callback($processorRegex,$func,$expression);
-        } while (preg_match_all($processorRegex,$expression) > 0);
-
-        $strip =  '/('.
-                  RegExHelper::$GENERAL['start'].
-                  '|'.
-                  RegExHelper::$GENERAL['end'].
-                  ')/';
-        $value = preg_replace($strip,'',$value);
-
-        if($hasContext && $context->has($value)) {
-          $value = $context->get($value);
-        } elseif($systemContext->has($value)) {
-          $value = $systemContext->get($value);
         } else {
-          // TODO: Add default replacement if no value could be found?
-          $value = '';
+          if($hasContext && $context->has($expression)) {
+            $value = $context->get($expression);
+          } elseif($systemContext->has($expression)) {
+            $value = $systemContext->get($expression);
+          } else {
+            // TODO: Add default replacement if no value could be found?
+            $value = '';
+          }
         }
-      } else {
-        if($hasContext && $context->has($expression)) {
-          $value = $context->get($expression);
-        } elseif($systemContext->has($expression)) {
-          $value = $systemContext->get($expression);
-        } else {
-          // TODO: Add default replacement if no value could be found?
-          $value = '';
-        }
-      }
 
-      return $value;
-    };
-    $regexp = '/'.
-              RegExHelper::$GENERAL['start'].
-              RegExHelper::$GENERAL['any'].
-              RegExHelper::$GENERAL['end'].
-              '/';
-    $tpl = preg_replace_callback($regexp,$func,$tpl);
+        return $value;
+      };
+      $regexp = '/'.
+                RegExHelper::$GENERAL['start'].
+                RegExHelper::$GENERAL['any'].
+                RegExHelper::$GENERAL['end'].
+                '/';
+      $tpl = preg_replace_callback($regexp,$func,$tpl);
+    } catch(Exception|Error $e) {
+      throw new InvalidSyntaxException('An error occurred while parsing the template!', 1526135868, $e);
+    }
 
     return $tpl;
   }
@@ -267,7 +278,8 @@ class Tempearly {
    *
    * @return Context
    */
-  private function buildContext() {
+  private function buildContext() : Context
+  {
    return new Context([
      '_UID' => uniqid('uid_',false)
    ]);
@@ -280,7 +292,8 @@ class Tempearly {
    *
    * @return string The template folder path
    */
-  public function getPath() {
+  public function getPath() : string
+  {
     return $this->PATH;
   }
 
@@ -289,7 +302,8 @@ class Tempearly {
    *
    * @param string $path The new template folder path
    */
-  public function setPath($path) {
+  public function setPath(string $path) : void
+  {
     $this->PATH = $path;
   }
 
@@ -298,7 +312,8 @@ class Tempearly {
    *
    * @return string The template folder path
    */
-  public function getExtension() {
+  public function getExtension() : string
+  {
     return $this->EXTENSION;
   }
 
@@ -307,7 +322,8 @@ class Tempearly {
    *
    * @param string $extension The new template folder path
    */
-  public function setExtension($extension) {
+  public function setExtension(string $extension) : void
+  {
     $this->EXTENSION = $extension;
   }
 
@@ -319,7 +335,8 @@ class Tempearly {
    * @param string $html The html to minify
    * @return string The minified html
    */
-  public static function minify($html) {
+  public static function minify(string $html) : string
+  {
     $html = preg_replace(RegExHelper::$MINIFIER['whitespaceOutsideTags'],'',$html);
     $html = preg_replace(RegExHelper::$MINIFIER['multipleWhitespaces'],' ',$html);
     $html = preg_replace(RegExHelper::$MINIFIER['htmlComments'],'',$html);
@@ -332,7 +349,8 @@ class Tempearly {
    * @param array $context
    * @return mixed
    */
-  public function parseExpression(string $expression, $context = null) {
+  public function parseExpression(string $expression, $context = null)
+  {
     $hasContext;
     if(!empty($context)) {
       if(is_object($context) && get_class($context) != 'MCStreetguy\Tempearly\Context') {

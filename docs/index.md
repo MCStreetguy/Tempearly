@@ -18,17 +18,6 @@ Tempearly uses Regular Expressions to provide fast but still powerful features t
 
 ## Installation
 
-### Prerequisites
-
-Tempearly requires the following dependencies to be available:
-
-| Dependency | Version |
-| :--------- | :-----: |
-| PHP | ^5.6 \| ^7.0 |
-| Composer * | latest |
-
-_* <small>this dependency is optional</small>_
-
 ### Composer
 
 Require the module through Composer:    
