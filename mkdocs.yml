@@ -8,8 +8,9 @@ pages:
     - Methods: reference.md
     - Syntax: syntax.md
 theme:
-  # name: 'rtd-dropdown'
-  name: 'readthedocs'
+  name: 'rtd-dropdown'
+  # name: 'readthedocs'
+  # name: 'material'
 repo_url: https://github.com/MCStreetguy/Tempearly
 repo_name: 'GitHub'
 copyright: '&copy; 2018, Maximilian Schmidt'
