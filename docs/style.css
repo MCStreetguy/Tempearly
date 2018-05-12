@@ -70,15 +70,3 @@ blockquote:before {
 blockquote p {
   display: inline;
 }
-
-.toctree-l1:not(.current) > a {
-  padding-left: 21px;
-}
-
-.toctree-l3 {
-  margin-left: 10px;
-}
-
-.toctree-l4 {
-  margin-left: 20px;
-}
