@@ -47,7 +47,8 @@ class Context {
    * @param mixed $value The value of the new entry
    * @return bool
    */
-  public function push(string $key,$value) {
+  public function push(string $key,$value) : bool
+  {
     if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->protected)) {
       return false;
     } else {
@@ -86,12 +87,15 @@ class Context {
    * Adds an array of entries to the context.
    *
    * @param array $entries The key-value-pairs to add
-   * @return bool
+   * @return int
    */
-  public function expand(array $entries) {
-    $result = true;
+  public function expand(array $entries) : int
+  {
+    $result = 0;
     foreach ($entries as $key => $value) {
-      $result = ($result && $this->push($key,$value));
+      if($this->push($key,$value)) {
+        $result++;
+      }
     }
 
     return $result;
@@ -104,40 +108,34 @@ class Context {
    * @param bool $forceString
    * @return mixed
    */
-  public function get(string $key, bool $forceString = false) {
-    $result;
+  public function get(string $key, bool $forceString = false)
+  {
     $default = '';
 
     if(strtolower($key) == '_all') {
       $result = $this->contents;
-    } else {
-      $result = $this->parseValue($key,$forceString);
+    } elseif(strpos($key,'.') != false) {
+      $key = explode('.',$key);
 
-      if($result == null || $result == 'null') {
-        if(strpos($key,'.') != false) {
-          $key = explode('.',$key);
+      if($this->has($key[0])) {
+        $result = $this->contents;
 
-          if($this->has($key[0])) {
-            $result = $this->contents;
-
-            foreach ($key as $key => $value) {
-              if(is_array($result) && array_key_exists($value,$result)) {
-                $result = $result[$value];
-              } else {
-                $result = $default;
-                break;
-              }
-            }
+        foreach ($key as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
           } else {
             $result = $default;
-          }
-        } else {
-          if($this->has($key)) {
-            $result = $this->contents[$key];
-          } else {
-            $result = $default;
+            break;
           }
         }
+      } else {
+        $result = $default;
+      }
+    } else {
+      if($this->has($key)) {
+        $result = $this->contents[$key];
+      } else {
+        $result = $default;
       }
     }
 
@@ -150,34 +148,29 @@ class Context {
    * @param string $key The key to search for
    * @return bool
    */
-  public function has(string $key) {
-    $result = $this->parseValue($key);
+  public function has(string $key) : bool
+  {
+    if(strpos($key,'.') != false) {
+      $key = explode('.',$key);
 
-    if($result == null) {
-      if(strpos($key,'.') != false) {
-        $key = explode('.',$key);
+      if(array_key_exists($key[0],$this->contents)) {
+        $result = $this->contents;
 
-        if(array_key_exists($key[0],$this->contents)) {
-          $result = $this->contents;
-
-          foreach ($key as $key => $value) {
-            if(is_array($result) && array_key_exists($value,$result)) {
-              $result = $result[$value];
-            } else {
-              $result = false;
-              break;
-            }
+        foreach ($key as $key => $value) {
+          if(is_array($result) && array_key_exists($value,$result)) {
+            $result = $result[$value];
+          } else {
+            $result = false;
+            break;
           }
-
-          $result = ($result != false);
-        } else {
-          $result = false;
         }
+
+        $result = ($result != false);
       } else {
-        $result = array_key_exists($key,$this->contents);
+        $result = false;
       }
     } else {
-      $result = true;
+      $result = array_key_exists($key,$this->contents);
     }
 
     return $result;
@@ -190,7 +183,8 @@ class Context {
    * @param string $key The key to protect
    * @return void
    */
-  public function protect(string $key) {
+  public function protect(string $key) : void
+  {
     $this->protected[] = $key;
   }
 
@@ -200,7 +194,8 @@ class Context {
    * @param string $name Name of the processor to get
    * @return Processor|bool
    */
-  public function getProcessor(string $name) {
+  public function getProcessor(string $name)
+  {
     if(!empty($name) && array_key_exists($name,$this->processors)) {
       return $this->processors[$name];
     } else {
@@ -216,7 +211,8 @@ class Context {
    * @param bool $force [optional] Allow overriding of existing processors (not recommended)
    * @return bool
    */
-  public function register(string $name, Processor $processor, bool $force = false) {
+  public function register(string $name, Processor $processor, bool $force = false) : bool
+  {
     if(!array_key_exists($name,$this->processors) || $force) {
       $this->processors[$name] = $processor;
       return true;
@@ -229,12 +225,15 @@ class Context {
    * Registers multiple processors at once.
    *
    * @param array $processors The processors to register
-   * @return bool
+   * @return int
    */
-  public function registerAll(array $processors) {
-    $result = true;
+  public function registerAll(array $processors) : int
+  {
+    $result = 0;
     foreach ($processors as $key => $value) {
-      $result = ($result && $this->register($key,$value));
+      if($this->register($key,$value)) {
+        $result++;
+      }
     }
 
     return $result;

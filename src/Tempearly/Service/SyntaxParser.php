@@ -1,8 +1,11 @@
 <?php
 
 namespace MCStreetguy\Tempearly\Service;
+
 use MCStreetguy\Tempearly\Context;
 use MCStreetguy\Tempearly\Service\RegExHelper;
+
+use MCStreetguy\Tempearly\Exceptions\InvalidSyntaxException;
 
 /**
  *
@@ -53,14 +56,6 @@ abstract class SyntaxParser
         // Value randomization
         $expression = preg_split('/'.RegExHelper::$DELIMITER['randomizer'].'/',$expression);
         $expression = $expression[rand(0,count($expression)-1)];
-
-        if($context->has($expression)) {
-          $value = $context->get($expression);
-        } else {
-          // TODO: Add default replacement if no value could be found?
-          // TODO: Retry randomization if no value could be found?
-          $value = '';
-        }
       } elseif(preg_match_all($processorRegex,$expression) > 0) {
         // Processors set
         $func = function ($matches) use ($context) {
@@ -82,17 +77,14 @@ abstract class SyntaxParser
                   RegExHelper::$GENERAL['end'].
                   ')/';
         $value = preg_replace($strip,'',$value);
+      }
 
-        if($context->has($value)) {
-          $value = $context->get($value);
-        } else {
-          // TODO: Add default replacement if no value could be found?
-          $value = '';
-        }
+      if($context->has($expression)) {
+        $value = $context->get($expression);
       } else {
-        if($context->has($expression)) {
-          $value = $context->get($expression);
-        } else {
+        try {
+          self::parseValue($expression);
+        } catch(InvalidSyntaxException $e) {
           // TODO: Add default replacement if no value could be found?
           $value = '';
         }
@@ -226,6 +218,27 @@ abstract class SyntaxParser
               RegExHelper::$GENERAL['end'].
               '/';
     return preg_replace_callback($regexp,$func,$source);
+  }
+
+  /**
+   * @param string $expression
+   * @return mixed
+   */
+  protected static function parseValue(string $expression)
+  {
+    if(strtolower($valueExpression) == 'true') {
+      return true;
+    } elseif(strtolower($valueExpression) == 'false') {
+      return false;
+    } elseif(floatval($valueExpression) && floatval($valueExpression) != intval($valueExpression)) {
+      return floatval($valueExpression);
+    } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
+      return intval($valueExpression);
+    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
+      return $result[2];
+    } else {
+      throw new InvalidSyntaxException("Expression '$expression' could not be parsed to a value!", 1526166465);
+    }
   }
 }
 
