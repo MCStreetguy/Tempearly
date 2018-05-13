@@ -194,6 +194,45 @@ final class ContextTest extends TestCase
 
     return $context;
   }
+
+  /**
+   * @param Context $context
+   * @depends testCanRegisterProcessor
+   * @return Context
+   */
+  public function testCanNotOverrideExistingProcessor(Context $context) : Context
+  {
+    $func = function (string $value) {
+      return 'Bye World!';
+    };
+
+    $this->assertTrue($context->hasProcessor('testing'), "The recieved context instance is invalid!");
+    $this->assertFalse($context->register('testing', $func), "The context illicitly allowed overriding of an existing processor!");
+
+    return $context;
+  }
+
+  /**
+   * @param Context $context
+   * @depends testCanNotOverrideExistingProcessor
+   * @return Context
+   */
+  public function testCanForceOverrideExistingProcessor(Context $context) : Context
+  {
+    $func = function (string $value) {
+      return 'Bye World!';
+    };
+
+    $this->assertTrue($context->hasProcessor('testing'), "The recieved context instance is invalid!");
+    $this->assertTrue($context->register('testing', $func, true), "Could not override the processor 'testing' on the context!");
+    $this->assertTrue($context->hasProcessor('testing'), "The context does not contain the previously overridden processor 'testing'!");
+    $this->assertAttributeContains($func, 'processors', $context, "The context processors attribute does not contain the previously overridden processor 'testing'!");
+
+    $result = $context->getProcessor('testing');
+    $this->assertEquals('Bye World!', $result(''), "Previously overridden processor 'testing' returned an unexpected value!");
+
+    return $context;
+  }
 }
 
 ?>
