@@ -40,11 +40,11 @@ class Tempearly {
    * Invokes the rendering process of the given template.
    *
    * @param string $id The template identifier
-   * @param array $context [optional] Additional context variables for template processing
-   * @return string The parsed template string
+   * @param array|Context|null $context [optional] Additional context variables for template processing
    * @throws InvalidArgumentException
    * @throws FileSystemException
    * @throws InvalidSyntaxException
+   * @return string The parsed template string
    */
   public function render(string $id, $context = null) : string
   {
@@ -59,6 +59,21 @@ class Tempearly {
 
     $tpl = file_get_contents($SOURCE);
 
+    return $this->parse($tpl, $context);
+  }
+
+  /**
+   * Renders the given source string.
+   *
+   * @param string $source The template source
+   * @param array|Context|null $context [optional] Additional context variables for template processing
+   * @throws InvalidArgumentException
+   * @throws FileSystemException
+   * @throws InvalidSyntaxException
+   * @return string The parsed template string
+   */
+  public function parse(string $source, $context = null) : string
+  {
     if(!empty($context)) {
       if(is_object($context) && $context instanceof Context) {
         // Do nothing
@@ -75,8 +90,8 @@ class Tempearly {
 
     try {
 
-      $tpl = SyntaxParser::parseComments($tpl, $context);
-      $tpl = SyntaxParser::parseConditions($tpl, $context);
+      $source = SyntaxParser::parseComments($source, $context);
+      $source = SyntaxParser::parseConditions($source, $context);
 
       // Template rendering
       $func = function($matches) use ($context) {
@@ -89,14 +104,15 @@ class Tempearly {
                 RegExHelper::$GENERAL['filename'].
                 RegExHelper::$GENERAL['end'].
                 '/';
-      $tpl = preg_replace_callback($regexp,$func,$tpl);
+      $source = preg_replace_callback($regexp,$func,$source);
 
-      $tpl = SyntaxParser::parseVariables($tpl, $context);
+      $source = SyntaxParser::parseVariables($source, $context);
+
     } catch(Exception|Error $e) {
       throw new InvalidSyntaxException('An error occurred while parsing the template!', 1526135868, $e);
     }
 
-    return $tpl;
+    return $source;
   }
 
   // Helper methods
