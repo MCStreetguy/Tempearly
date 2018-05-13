@@ -25,7 +25,7 @@ final class ContextTest extends TestCase
     $context = new Context([
       'Hello' => 'World',
       'foo' => 'bar',
-      42 => false
+      '42' => false
     ]);
     $this->assertInstanceOf(Context::class, $context);
 
@@ -58,7 +58,7 @@ final class ContextTest extends TestCase
     $context = new Context([
       'Hello' => 'World',
       'foo' => 'bar',
-      42 => false
+      '42' => false
     ],[
       'test' => function (string $value) {
         return 'Hello World!';
@@ -79,9 +79,9 @@ final class ContextTest extends TestCase
    */
   public function testCanPushValues(Context $context) : Context
   {
-    $context->push('hello-world', 27);
-
-    $this->assertArrayHasKey('hello-world', $context->get('_all'));
+    $this->assertTrue($context->push('hello-world', 27), "Could not push 'hello-world => 27' to context!");
+    $this->assertTrue($context->has('hello-world'), "The context does not contain the previously stored value 'hello-world => 27'!");
+    $this->assertAttributeContains(27, 'contents', $context, "The context contents attribute does not contain the previously stored value 'hello-world => 27'!");
 
     return $context;
   }
@@ -91,21 +91,106 @@ final class ContextTest extends TestCase
    * @depends testCanPushValues
    * @return Context
    */
-  public function testCanCheckForKey(Context $context) : Context
+  public function testCanExpand(Context $context) : Context
   {
-    $this->assertEquals(true, $context->has('hello-world'));
+    $this->assertEquals(3, $context->expand([
+      'Hello' => 'World',
+      'foo' => 'bar',
+      '42' => false
+    ]), "Expanding of context returned unexpected summary value!");
+
+    $this->assertTrue($context->has('Hello'), "The context does not contain the previously stored value 'Hello => World'!");
+    $this->assertAttributeContains('World', 'contents', $context, "The context contents attribute does not contain the previously stored value 'Hello => World'!");
+    $this->assertTrue($context->has('foo'), "The context does not contain the previously stored value 'foo => bar'!");
+    $this->assertAttributeContains('bar', 'contents', $context, "The context contents attribute does not contain the previously stored value 'foo => bar'!");
+    $this->assertTrue($context->has('42'), "The context does not contain the previously stored value '42 => false'!");
+    $this->assertAttributeContains(false, 'contents', $context, "The context contents attribute does not contain the previously stored value '42 => false'!");
 
     return $context;
   }
 
   /**
    * @param Context $context
-   * @depends testCanPushValues
+   * @depends testCanExpand
    * @return Context
    */
   public function testCanGetValues(Context $context) : Context
   {
-    $this->assertEquals(27, $context->get('hello-world'));
+    $this->assertEquals(27, $context->get('hello-world'), "Previously stored key 'hello-world' differs from definition!");
+    $this->assertEquals('World', $context->get('Hello'), "Previously stored key 'World' differs from definition!");
+    $this->assertEquals('bar', $context->get('foo'), "Previously stored key 'foo' differs from definition!");
+    $this->assertFalse($context->get('42'), "Previously stored key '42' differs from definition!");
+    $this->assertEquals('', $context->get('nonexisting'), "Unset key returned unexpected value!");
+
+    return $context;
+  }
+
+  /**
+   * @return Context
+   */
+  public function testCanProtectKey() : Context
+  {
+    $context = new Context();
+
+    $context->protect('foo');
+
+    $this->assertAttributeContains('foo', 'protected', $context, "The context protected attribute does not contain the previously protected key 'foo'!");
+    $this->assertFalse($context->push('foo','bar'), "The context illicitly allowed pushing to an protected key!");
+
+    return $context;
+  }
+
+  /**
+   * @return Context
+   */
+  public function testCanRegisterProcessor() : Context
+  {
+    $context = new Context();
+
+    $func = function (string $value) {
+      return 'Hello World!';
+    };
+
+    $this->assertTrue($context->register('testing', $func), "Could not register a processor on the context!");
+    $this->assertTrue($context->hasProcessor('testing'), "The context does not contain the previously registered processor 'testing'!");
+    $this->assertAttributeContains($func, 'processors', $context, "The context processors attribute does not contain the previously registered processor 'testing'!");
+
+    $result = $context->getProcessor('testing');
+    $this->assertEquals('Hello World!', $result(''), "Previously registered processor 'testing' returned an unexpected value!");
+
+    return $context;
+  }
+
+  /**
+   * @return Context
+   */
+  public function testCanRegisterMultipleProcessors() : Context
+  {
+    $context = new Context();
+
+    $func1 = function (string $value) {
+      return 'Hello World!';
+    };
+
+    $func2 = function (string $value) {
+      return strtoupper($value);
+    };
+
+    $this->assertEquals(2, $context->registerAll([
+      'testing' => $func1,
+      'toupper' => $func2
+    ]), "Registering of multiple processors returned an unexpected summary value!");
+
+    $this->assertTrue($context->hasProcessor('testing'), "The context does not contain the previously registered processor 'testing'!");
+    $this->assertAttributeContains($func1, 'processors', $context, "The context processors attribute does not contain the previously registered processor 'testing'!");
+    $this->assertTrue($context->hasProcessor('toupper'), "The context does not contain the previously registered processor 'toupper'!");
+    $this->assertAttributeContains($func2, 'processors', $context, "The context processors attribute does not contain the previously registered processor 'toupper'!");
+
+    $result = $context->getProcessor('testing');
+    $this->assertEquals('Hello World!', $result(''), "Previously registered processor 'testing' returned an unexcepted value!");
+
+    $result = $context->getProcessor('toupper');
+    $this->assertEquals('HELLO WORLD!', $result('Hello World!'), "Previously registered processor 'toupper' returned an unexcepted value!");
 
     return $context;
   }

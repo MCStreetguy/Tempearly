@@ -48,7 +48,7 @@ class Context {
    */
   public function push(string $key,$value) : bool
   {
-    if(empty($key) || !is_string($key) || empty($value) || in_array($key,$this->protected)) {
+    if(empty($key) || !is_string($key) || in_array($key,$this->protected)) {
       return false;
     } else {
       if(strpos($key,'.') != false) {
@@ -93,7 +93,7 @@ class Context {
     $result = 0;
     foreach ($entries as $key => $value) {
       if($this->push($key,$value)) {
-        $result++;
+        $result += 1;
       }
     }
 
@@ -191,7 +191,7 @@ class Context {
    * Gets a processor from the context.
    *
    * @param string $name Name of the processor to get
-   * @return Processor|bool
+   * @return callable|bool
    */
   public function getProcessor(string $name)
   {
@@ -242,7 +242,7 @@ class Context {
     $result = 0;
     foreach ($processors as $key => $value) {
       if($this->register($key,$value)) {
-        $result++;
+        $result += 1;
       }
     }
 
