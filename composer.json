@@ -15,10 +15,12 @@
       "MCStreetguy\\": "src/"
     }
   },
-  "require-dev": {},
+  "require-dev": {
+    "phpunit/phpunit": "^7"
+  },
   "config": {
     "platform": {
-      "php": "^7.1"
+      "php": "7.1"
     }
   }
 }
