@@ -2,8 +2,6 @@
 
 use PHPUnit\Framework\TestCase;
 
-use PHPUnit\Framework\Error\Error;
-
 use MCStreetguy\Tempearly\Service\RegExHelper;
 
 final class RegExHelperTest extends TestCase
