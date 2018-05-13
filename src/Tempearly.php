@@ -5,6 +5,8 @@ use Error;
 use Exception;
 use InvalidArgumentException;
 use MCStreetguy\Tempearly\Context;
+use MCStreetguy\Tempearly\Errors\InvalidSyntaxError;
+
 use MCStreetguy\Tempearly\Service\RegExHelper;
 use MCStreetguy\Tempearly\Service\SyntaxParser;
 use MCStreetguy\Tempearly\Exceptions\FileSystemException;
@@ -108,8 +110,10 @@ class Tempearly {
 
       $source = SyntaxParser::parseVariables($source, $context);
 
-    } catch(Exception|Error $e) {
-      throw new InvalidSyntaxException('An error occurred while parsing the template!', 1526135868, $e);
+    } catch(Exception $e) {
+      throw new InvalidSyntaxException('An error occurred while parsing the template string!', 1526135868, $e);
+    } catch(Error $e) {
+      throw new InvalidSyntaxError('An error occurred while parsing the template string!', 1526222794, $e);
     }
 
     return $source;

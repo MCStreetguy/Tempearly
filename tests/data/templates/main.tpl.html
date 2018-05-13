@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  {{tpl headerpartial}}
+  <body>
+    <h1>{{content.headline}}</h1>
+    <p>
+      {{content.text}}
+    </p>
+    {{if conditions.showSpacer}}<hr />{{/if}}
+    {{if conditions.userLoggedIn}}
+    <small>You are logged in.</small>
+    {{else}}
+    <small>Welcome guest.</small>
+    {{/if}}
+    {* This comment should never be visible in the rendered template. *}
+    <b>Made with {{conditions.lovely ? "Love" : "Hate"}}</b>
+  </body>
+</html>

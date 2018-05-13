@@ -28,9 +28,9 @@ abstract class SyntaxParser
    */
   public static function parseConditions(string $source, Context $context) : string
   {
-    $source = self::parseIfElse($source);
-    $source = self::parseIf($source);
-    $source = self::parseTernary($source);
+    $source = self::parseIfElse($source, $context);
+    $source = self::parseIf($source, $context);
+    $source = self::parseTernary($source, $context);
 
     return $source;
   }

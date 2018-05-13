@@ -2,6 +2,8 @@
 
 namespace MCStreetguy\Tempearly;
 
+use InvalidArgumentException;
+
 /**
  * The context class. Contains variables (keys with values) to use within the template.
  *
@@ -85,11 +87,18 @@ class Context {
   /**
    * Adds an array of entries to the context.
    *
-   * @param array $entries The key-value-pairs to add
+   * @param array|Context $entries The key-value-pairs to add
    * @return int
    */
-  public function expand(array $entries) : int
+  public function expand($entries) : int
   {
+    if($entries instanceof Context) {
+      $entries = $entries->get('_all');
+    } elseif(!is_array($entries)) {
+      $type = gettype($entries);
+      throw new InvalidArgumentException("Argument 'entries' has to be of type array of Context, $type given!");
+    }
+
     $result = 0;
     foreach ($entries as $key => $value) {
       if($this->push($key,$value)) {
