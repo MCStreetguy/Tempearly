@@ -61,7 +61,7 @@ class Tempearly {
 
     $tpl = file_get_contents($SOURCE);
 
-    return $this->parse($tpl, $context);
+    return self::parse($tpl, $context);
   }
 
   /**
@@ -74,7 +74,7 @@ class Tempearly {
    * @throws InvalidSyntaxException
    * @return string The parsed template string
    */
-  public function parse(string $source, $context = null) : string
+  public static function parse(string $source, $context = null) : string
   {
     if(!empty($context)) {
       if(is_object($context) && $context instanceof Context) {
@@ -96,17 +96,17 @@ class Tempearly {
       $source = SyntaxParser::parseConditions($source, $context);
 
       // Template rendering
-      $func = function($matches) use ($context) {
-        $identifier = $matches[2];
-
-        return $this->render($identifier,$context);
-      };
-      $regexp = '/'.
-                RegExHelper::$KEYWORDS['template'].
-                RegExHelper::$GENERAL['filename'].
-                RegExHelper::$GENERAL['end'].
-                '/';
-      $source = preg_replace_callback($regexp,$func,$source);
+      // $func = function($matches) use ($context) {
+      //   $identifier = $matches[2];
+      //
+      //   return $this->render($identifier,$context);
+      // };
+      // $regexp = '/'.
+      //           RegExHelper::$KEYWORDS['template'].
+      //           RegExHelper::$GENERAL['filename'].
+      //           RegExHelper::$GENERAL['end'].
+      //           '/';
+      // $source = preg_replace_callback($regexp,$func,$source);
 
       $source = SyntaxParser::parseVariables($source, $context);
 
