@@ -18,7 +18,7 @@ abstract class SyntaxParser
    */
   public static function parseComments(string $source) : string
   {
-    return preg_replace(RegExHelper::$COMMENTS,'',$tpl);
+    return preg_replace(RegExHelper::$COMMENTS, '', $source);
   }
 
   /**
