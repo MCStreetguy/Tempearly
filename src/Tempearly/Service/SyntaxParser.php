@@ -226,15 +226,15 @@ abstract class SyntaxParser
    */
   protected static function parseValue(string $expression)
   {
-    if(strtolower($valueExpression) == 'true') {
+    if(strtolower($expression) == 'true') {
       return true;
-    } elseif(strtolower($valueExpression) == 'false') {
+    } elseif(strtolower($expression) == 'false') {
       return false;
-    } elseif(floatval($valueExpression) && floatval($valueExpression) != intval($valueExpression)) {
-      return floatval($valueExpression);
-    } elseif(intval($valueExpression) && floatval($valueExpression) == intval($valueExpression)) {
-      return intval($valueExpression);
-    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$valueExpression,$result)) {
+    } elseif(floatval($expression) && floatval($expression) != intval($expression)) {
+      return floatval($expression);
+    } elseif(intval($expression) && floatval($expression) == intval($expression)) {
+      return intval($expression);
+    } elseif(preg_match('/(["\'])([^"\']*)(["\'])/',$expression,$result)) {
       return $result[2];
     } else {
       throw new InvalidSyntaxException("Expression '$expression' could not be parsed to a value!", 1526166465);
